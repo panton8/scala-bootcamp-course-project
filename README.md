@@ -15,7 +15,7 @@ Your points are totalled for each match week. By default you will be enrolled in
 
 ## System’s class diagram
 
-![img_2.png](img.png)
+![img_1.png](img_1.png)
 
 ## List of functions of application
 * singUp - registration of new user

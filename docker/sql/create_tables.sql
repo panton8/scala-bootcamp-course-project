@@ -1,6 +1,7 @@
 -- Users
 CREATE TABLE IF NOT EXISTS users (
     id serial NOT NULL PRIMARY KEY,
+    user_name varchar NOT NULL,
     email varchar NOT NULL,
     password varchar NOT NULL,
     role varchar NOT NULL,
@@ -21,12 +22,12 @@ CREATE TABLE IF NOT EXISTS players (
     id serial NOT NULL PRIMARY KEY,
     name varchar NOT NULL,
     surname varchar NOT NULL,
-    club char(3) NOT NULL,
+    club varchar NOT NULL,
     price real NOT NULL,
     pos char(3) NOT NULL,
     role varchar NOT NULL,
     health_status varchar NOT NULL,
-    starter boolean NOT NULL
+    game_place varchar NOT NULL
 );
 
 -- Link between teams and players

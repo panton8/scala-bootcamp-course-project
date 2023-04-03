@@ -24,3 +24,30 @@ object Southampton extends Club {override def toString: String = "Southampton"}
 object Tottenham extends Club {override def toString: String = "Tottenham"}
 object WestHam extends Club {override def toString: String = "WestHam"}
 object Wolverhampton extends Club {override def toString: String = "Wolverhampton"}
+
+object ClubSyntax {
+  implicit class GetClub(val club: String) extends AnyVal {
+    def toClub: Club  = club match {
+      case "Arsenal"          => Arsenal
+      case "AstonVilla"       => AstonVilla
+      case "Bournemouth"      => Bournemouth
+      case "Brentford"        => Brentford
+      case "Brighton"         => Brighton
+      case "Chelsea"          => Chelsea
+      case "CrystalPalace"    => CrystalPalace
+      case "Everton"          => Everton
+      case "Fulham"           => Fulham
+      case "Leeds"            => Leeds
+      case "Leicester"        => Leicester
+      case "Liverpool"        => Liverpool
+      case "ManCity"          => ManCity
+      case "ManUnited"        => ManUnited
+      case "Newcastle"        => Newcastle
+      case "NottinghamForest" => NottinghamForest
+      case "Southampton"      => Southampton
+      case "Tottenham"        => Tottenham
+      case "WestHam"          => WestHam
+      case "Wolverhampton"    => Wolverhampton
+    }
+  }
+}

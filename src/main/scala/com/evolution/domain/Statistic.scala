@@ -2,13 +2,14 @@ package com.evolution.domain
 
 final case class Statistic(
   gameWeek: GameWeek,
+  goals:Int,
+  assists: Int,
+  minutes: Int,
+  ownGoals: Int,
   yellowCard: Int,
   redCard: Int,
-  goalScored:Int,
-  ownGoals: Int,
-  minPlayed: Int,
-  isStarter:Boolean,
-  points: Points
+  saves: Int,
+  cleanSheet: Boolean
 )
 
 

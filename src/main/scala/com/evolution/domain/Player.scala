@@ -1,11 +1,6 @@
 package com.evolution.domain
 
 import doobie.util.{Read, Write}
-import ClubSyntax._
-import PositionSyntax._
-import RoleSyntax._
-import StatusSyntax._
-import PlaceSyntax._
 
 final case class Player(
   id: Id,
@@ -27,12 +22,12 @@ object Player {
         Id(id),
         Name(name),
         Surname(surname),
-        club.toClub,
+        Club.parse(club),
         Price(price),
-        position.toPos,
-        role.toRole,
-        status.toStatus,
-        place.toPlace
+        Position.parse(position),
+        Role.parse(role),
+        Status.parse(status),
+        Place.parse(status)
       )
   }
 

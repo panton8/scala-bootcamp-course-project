@@ -1,16 +1,15 @@
 package com.evolution.domain
 
-trait Role
+sealed trait Role
 
-object Captain extends Role {override def toString: String = "Captain"}
-object Ordinary extends Role {override def toString: String = "Ordinary"}
+final case object Captain extends Role {override def toString: String = "Captain"}
+final case object Ordinary extends Role {override def toString: String = "Ordinary"}
 
-object RoleSyntax {
-  implicit class GetRole(val role: String) extends AnyVal {
-    def toRole: Role = role match {
-      case "Captain"  => Captain
-      case "Ordinary" => Ordinary
-    }
+object Role {
+  def parse(role: String): Role = role match {
+    case "Captain"  => Captain
+    case "Ordinary" => Ordinary
+    case _          => ???
   }
 }
 

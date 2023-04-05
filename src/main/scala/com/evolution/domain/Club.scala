@@ -1,33 +1,32 @@
 package com.evolution.domain
 
-trait Club {
-  def toString: String
+sealed trait Club {
+  val club : String
 }
 
-object Arsenal extends Club {override def toString: String = "Arsenal"}
-object AstonVilla extends Club {override def toString: String = "AstonVilla"}
-object Bournemouth extends Club {override def toString: String = "Bournemouth"}
-object Brentford extends Club {override def toString: String = "Brentford"}
-object Brighton extends Club {override def toString: String = "Brighton"}
-object Chelsea extends Club {override def toString: String = "Chelsea"}
-object CrystalPalace extends Club {override def toString: String = "CrystalPalace"}
-object Everton extends Club {override def toString: String = "Everton"}
-object Fulham extends Club {override def toString: String = "Fulham"}
-object Leeds extends Club {override def toString: String = "Leeds"}
-object Leicester extends Club {override def toString: String = "Leicester"}
-object Liverpool extends Club {override def toString: String = "Liverpool"}
-object ManCity extends Club {override def toString: String = "ManCity"}
-object ManUnited extends Club {override def toString: String = "ManUnited"}
-object Newcastle extends Club {override def toString: String = "Newcastle"}
-object NottinghamForest extends Club {override def toString: String = "NottinghamForest"}
-object Southampton extends Club {override def toString: String = "Southampton"}
-object Tottenham extends Club {override def toString: String = "Tottenham"}
-object WestHam extends Club {override def toString: String = "WestHam"}
-object Wolverhampton extends Club {override def toString: String = "Wolverhampton"}
+final case object Arsenal extends Club {override val club: String = "Arsenal"}
+final case object AstonVilla extends Club {override val club: String = "AstonVilla"}
+final case object Bournemouth extends Club {override val club: String = "Bournemouth"}
+final case object Brentford extends Club {override val club: String = "Brentford"}
+final case object Brighton extends Club {override val club: String = "Brighton"}
+final case object Chelsea extends Club {override val club: String = "Chelsea"}
+final case object CrystalPalace extends Club {override val club: String = "CrystalPalace"}
+final case object Everton extends Club {override val club: String = "Everton"}
+final case object Fulham extends Club {override val club: String = "Fulham"}
+final case object Leeds extends Club {override val club: String = "Leeds"}
+final case object Leicester extends Club {override val club: String = "Leicester"}
+final case object Liverpool extends Club {override val club: String = "Liverpool"}
+final case object ManCity extends Club {override val club: String = "ManCity"}
+final case object ManUnited extends Club {override val club: String = "ManUnited"}
+final case object Newcastle extends Club {override val club: String = "Newcastle"}
+final case object NottinghamForest extends Club {override val club: String = "NottinghamForest"}
+final case object Southampton extends Club {override val club: String = "Southampton"}
+final case object Tottenham extends Club {override val club: String = "Tottenham"}
+final case object WestHam extends Club {override val club: String = "WestHam"}
+final case object Wolverhampton extends Club {override val club: String = "Wolverhampton"}
 
-object ClubSyntax {
-  implicit class GetClub(val club: String) extends AnyVal {
-    def toClub: Club  = club match {
+object Club {
+  def parse(club: String): Club = club match {
       case "Arsenal"          => Arsenal
       case "AstonVilla"       => AstonVilla
       case "Bournemouth"      => Bournemouth
@@ -48,6 +47,6 @@ object ClubSyntax {
       case "Tottenham"        => Tottenham
       case "WestHam"          => WestHam
       case "Wolverhampton"    => Wolverhampton
+      case _                  => ???
     }
-  }
 }

@@ -1,15 +1,14 @@
 package com.evolution.domain
 
-trait GamePlace
+sealed trait GamePlace
 
-object Starter extends GamePlace {override def toString: String = "Starter"}
-object Substituter extends GamePlace {override def toString: String = "Substituter"}
+final case object Starter extends GamePlace {override def toString: String = "Starter"}
+final case object Substituter extends GamePlace {override def toString: String = "Substituter"}
 
-object PlaceSyntax {
-  implicit class GetPlace(val place: String) extends AnyVal {
-    def toPlace: GamePlace = place match {
+object Place {
+    def parse(place: String): GamePlace = place match {
       case "Starter"     => Starter
       case "Substituter" => Substituter
-    }
+      case _             => ???
   }
 }

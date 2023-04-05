@@ -1,15 +1,14 @@
 package com.evolution.domain
 
-trait Access
+sealed trait Access
 
-object Base extends Access{override def toString: String = "Base"}
-object Admin extends Access{override def toString: String = "Admin"}
+final case object Base extends Access{override def toString: String = "Base"}
+final case object Admin extends Access{override def toString: String = "Admin"}
 
-object AccessSyntax {
-  implicit class GetAccess(val access: String) extends AnyVal {
-    def toAccess: Access = access match {
+object Access {
+    def parse(access: String): Access = access match {
       case "Base"  => Base
       case "Admin" => Admin
-    }
+      case _       => ???
   }
 }

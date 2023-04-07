@@ -1,14 +1,12 @@
 package com.evolution.domain
+import enumeratum._
 
-sealed trait Status
+sealed trait Status extends EnumEntry
 
-final case object Healthy extends Status {override def toString: String = "Healthy"}
-final case object Injured extends Status {override def toString: String = "Injured"}
+final case object Status extends Enum[Status] with DoobieEnum[Status] {
 
-object Status {
-    def parse(status: String): Status = status match {
-      case "Healthy" => Healthy
-      case "Injured" => Injured
-      case _         => ???
-  }
+  final case object Healthy extends Status
+  final case object Injured extends Status
+
+  val values = findValues
 }

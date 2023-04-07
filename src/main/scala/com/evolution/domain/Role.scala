@@ -1,15 +1,12 @@
 package com.evolution.domain
+import enumeratum._
 
-sealed trait Role
+sealed trait Role extends EnumEntry
 
-final case object Captain extends Role {override def toString: String = "Captain"}
-final case object Ordinary extends Role {override def toString: String = "Ordinary"}
+final case object Role extends Enum[Role] with DoobieEnum[Role] {
 
-object Role {
-  def parse(role: String): Role = role match {
-    case "Captain"  => Captain
-    case "Ordinary" => Ordinary
-    case _          => ???
-  }
+  final case object Captain extends Role
+  final case object Ordinary extends Role
+
+  val values = findValues
 }
-

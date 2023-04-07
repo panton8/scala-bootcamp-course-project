@@ -1,5 +1,6 @@
 package com.evolution.domain
 
+import com.evolution.domain.Access.Base
 import doobie.util.{Read, Write}
 
 final case class User(
@@ -12,25 +13,25 @@ final case class User(
 )
 
 object User {
-  implicit val userRead: Read[User] = Read[(Int, String, String, String, String, Double)].map {
-    case (id, name, email, password, role, budget) =>
+  implicit val userRead: Read[User] = Read[(Int, String, String, String, Access, Double)].map {
+    case (id, name, email, password, access, budget) =>
       new User(
         Id(id),
         Name(name),
         Email(email),
         Password(password),
-        Access.parse(role),
+        access,
         Budget(budget))
   }
 
-  implicit val userWrite: Write[User] = Write[(Int, String, String, String, String, Double)].contramap {
+  implicit val userWrite: Write[User] = Write[(Int, String, String, String, Access, Double)].contramap {
     user =>
     (
       user.id.value,
       user.userName.value,
       user.email.value,
       user.password.value,
-      user.access.toString,
+      user.access,
       user.budget.value)
   }
 }

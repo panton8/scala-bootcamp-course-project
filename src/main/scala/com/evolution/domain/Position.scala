@@ -1,18 +1,15 @@
 package com.evolution.domain
+import enumeratum._
 
-sealed trait Position
+sealed abstract class Position(override val entryName: String) extends EnumEntry
 
-final case object Forward extends Position {override def toString: String = "FWD"}
-final case object Midfielder extends Position {override def toString: String = "MID"}
-final case object Defender extends Position {override def toString: String = "DEF"}
-final case object Goalkeeper extends Position {override def toString: String = "GKP"}
+final case object Position extends Enum[Position] with DoobieEnum[Position] {
 
-object Position {
-  def parse(pos: String): Position = pos match {
-      case "FWD" => Forward
-      case "MID" => Midfielder
-      case "DEF" => Defender
-      case "GKP" => Goalkeeper
-      case _     => ???
-    }
+  final case object Forward extends Position("FWD")
+  final case object Midfielder extends Position("MID")
+  final case object Defender extends Position("DEF")
+  final case object Goalkeeper extends Position("GKP")
+
+  val values = findValues
+
 }

@@ -1,14 +1,12 @@
 package com.evolution.domain
+import enumeratum._
 
-sealed trait GamePlace
+sealed trait GamePlace extends EnumEntry
 
-final case object Starter extends GamePlace {override def toString: String = "Starter"}
-final case object Substituter extends GamePlace {override def toString: String = "Substituter"}
+final case object GamePlace extends Enum[GamePlace] with DoobieEnum[GamePlace] {
 
-object Place {
-    def parse(place: String): GamePlace = place match {
-      case "Starter"     => Starter
-      case "Substituter" => Substituter
-      case _             => ???
-  }
+  final case object Starter extends GamePlace
+  final case object Substituter extends GamePlace
+
+  val values = findValues
 }

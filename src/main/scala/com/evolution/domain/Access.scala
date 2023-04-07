@@ -1,14 +1,12 @@
 package com.evolution.domain
+import enumeratum._
 
-sealed trait Access
+sealed trait Access extends EnumEntry
 
-final case object Base extends Access{override def toString: String = "Base"}
-final case object Admin extends Access{override def toString: String = "Admin"}
+final case object Access extends Enum[Access] with DoobieEnum[Access] {
 
-object Access {
-    def parse(access: String): Access = access match {
-      case "Base"  => Base
-      case "Admin" => Admin
-      case _       => ???
-  }
+  final case object Base extends Access
+  final case object Admin extends Access
+
+  val values = findValues
 }

@@ -1,5 +1,8 @@
 package com.evolution.domain
 
+import com.evolution.domain.GamePlace.Starter
+import com.evolution.domain.Role.Ordinary
+import com.evolution.domain.Status.Healthy
 import doobie.util.{Read, Write}
 
 final case class Player(
@@ -16,33 +19,33 @@ final case class Player(
 )
 
 object Player {
-  implicit val teamRead: Read[Player] = Read[(Int, String, String, String, Double, String, String, String, String)].map {
+  implicit val teamRead: Read[Player] = Read[(Int, String, String, Club, Double, Position, Role, Status, GamePlace)].map {
     case (id, name, surname, club, price, position, role, status, place) =>
       Player(
         Id(id),
         Name(name),
         Surname(surname),
-        Club.parse(club),
+        club,
         Price(price),
-        Position.parse(position),
-        Role.parse(role),
-        Status.parse(status),
-        Place.parse(status)
+        position,
+        role,
+        status,
+        place
       )
   }
 
-  implicit val teamWrite: Write[Player] = Write[(Int, String, String, String, Double, String, String, String, String)].
+  implicit val teamWrite: Write[Player] = Write[(Int, String, String, Club, Double, Position, Role, Status, GamePlace)].
     contramap { player =>
     (
       player.id.value,
       player.name.value,
       player.surname.value,
-      player.club.toString,
+      player.club,
       player.price.value,
-      player.position.toString,
-      player.role.toString,
-      player.status.toString,
-      player.gamePlace.toString
+      player.position,
+      player.role,
+      player.status,
+      player.gamePlace
     )
   }
 }

@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS players (
     club varchar NOT NULL,
     price real NOT NULL,
     pos char(3) NOT NULL,
-    role varchar NOT NULL,
     health_status varchar NOT NULL,
     game_place varchar NOT NULL
 );
@@ -33,7 +32,8 @@ CREATE TABLE IF NOT EXISTS players (
 -- Link between teams and players
 CREATE TABLE IF NOT EXISTS teams_players (
     team_id serial NOT NULL REFERENCES teams (id),
-    player_id serial NOT NULL REFERENCES players (id)
+    player_id serial NOT NULL REFERENCES players (id),
+    player_role varchar NOT NULL
 );
 
 ALTER TABLE teams_players
@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS statistics(
     yellow_cards int NOT NULL,
     red_cards int NOT NULL,
     saves int NOT NULL,
-    clean_sheet boolean NOT NULL,
+    clean_sheet int NOT NULL,
     player_id serial NOT NULL REFERENCES players (id)
 );
+
+ALTER TABLE statistics
+    ADD CONSTRAINT statistics_connection PRIMARY KEY (game_week, player_id);

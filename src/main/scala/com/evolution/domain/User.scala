@@ -15,7 +15,7 @@ final case class User(
 object User {
   implicit val userRead: Read[User] = Read[(Int, String, String, String, Access, Double)].map {
     case (id, name, email, password, access, budget) =>
-      new User(
+      User(
         Id(id),
         Name(name),
         Email(email),

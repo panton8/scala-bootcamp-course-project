@@ -1,5 +1,6 @@
 package com.evolution.domain
 
+import doobie.util.{Read, Write}
 final case class Statistic(
   gameWeek: GameWeek,
   goals:Int,
@@ -9,7 +10,7 @@ final case class Statistic(
   yellowCard: Int,
   redCard: Int,
   saves: Int,
-  cleanSheet: Boolean
+  cleanSheet: Int
 )
 
 

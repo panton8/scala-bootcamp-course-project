@@ -13,13 +13,12 @@ final case class Player(
   price: Price,
   position: Position,
   status: Status = Healthy,
-  gamePlace: GamePlace = Starter,
-  stat: Map[GameWeek,Statistic] = Map()
+  stat: Map[GameWeek, Statistic] = Map()
 )
 
 object Player {
-  implicit val teamRead: Read[Player] = Read[(Int, String, String, Club, Double, Position,Status, GamePlace)].map {
-    case (id, name, surname, club, price, position, status, place) =>
+  implicit val teamRead: Read[Player] = Read[(Int, String, String, Club, Double, Position,Status)].map {
+    case (id, name, surname, club, price, position, status) =>
       Player(
         Id(id),
         Name(name),
@@ -28,11 +27,10 @@ object Player {
         Price(price),
         position,
         status,
-        place
       )
   }
 
-  implicit val teamWrite: Write[Player] = Write[(Int, String, String, Club, Double, Position,Status, GamePlace)].
+  implicit val teamWrite: Write[Player] = Write[(Int, String, String, Club, Double, Position,Status)].
     contramap { player =>
     (
       player.id.value,
@@ -42,7 +40,6 @@ object Player {
       player.price.value,
       player.position,
       player.status,
-      player.gamePlace
     )
   }
 }

@@ -25,15 +25,15 @@ CREATE TABLE IF NOT EXISTS players (
     club varchar NOT NULL,
     price real NOT NULL,
     pos char(3) NOT NULL,
-    health_status varchar NOT NULL,
-    game_place varchar NOT NULL
+    health_status varchar NOT NULL
 );
 
 -- Link between teams and players
 CREATE TABLE IF NOT EXISTS teams_players (
     team_id serial NOT NULL REFERENCES teams (id),
     player_id serial NOT NULL REFERENCES players (id),
-    player_role varchar NOT NULL
+    player_role varchar NOT NULL,
+    player_place varchar NOT NULL
 );
 
 ALTER TABLE teams_players

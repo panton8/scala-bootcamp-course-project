@@ -2,7 +2,7 @@ package com.evolution.domain
 
 import com.evolution.domain.GamePlace.Starter
 import com.evolution.domain.Role.{Captain, Ordinary}
-import com.evolution.domain.Status.Injured
+import com.evolution.domain.Status.{Healthy, Injured}
 import doobie.util.{Read, Write}
 final case class Statistic(
   gameWeek: GameWeek,
@@ -17,7 +17,7 @@ final case class Statistic(
 )
 
 object Statistic {
-  def countPoints(statistic: Statistic, healthStatus: Status, gamePlace: GamePlace = Starter, role: Role = Ordinary) = {
+  def countPoints(statistic: Statistic, healthStatus: Status = Healthy, gamePlace: GamePlace = Starter, role: Role = Ordinary) = {
     val points = Goal.points(statistic.goals).value +
       Assist.points(statistic.assists).value +
       Minutes.points(statistic.minutes).value +

@@ -1,27 +1,27 @@
 package com.evolution.service
 
 import cats.effect.IO
-import com.evolution.domain.{Email, Id, Name, Password, User}
+import com.evolution.domain.{Email, Id, Name, Password, Player, User}
 import com.evolution.repository._
 import com.evolution.domain.errors._
 
 final case class UserService() {
 
   def registration(userName: Name, email: Email, password: Password):IO[Option[User]] = for {
-      possibleName <- UserRepository.userByName(userName)
+      possibleName  <- UserRepository.userByName(userName)
       possibleEmail <- UserRepository.userByEmail(email)
-      userId <- (possibleName, possibleEmail) match {
+      userId        <- (possibleName, possibleEmail) match {
         case (None, None) => UserRepository.addUser(userName, email, password)
         case _            => IO.raiseError(SuchUserAlreadyExist("Such email or userName already exist"))
       }
-      user <- UserRepository.userById(Id(userId))
+      user          <- UserRepository.userById(Id(userId))
   } yield  user
 
   private def searchResult(io: IO[Option[User]]): IO[User] = for {
     possibleUser <- io
-    res <- possibleUser match {
+    res          <- possibleUser match {
       case Some(user) => IO.pure(user)
-      case None => IO.raiseError(SuchUserDoesNotExist)
+      case None       => IO.raiseError(SuchUserDoesNotExist)
     }
   } yield res
 
@@ -39,4 +39,7 @@ final case class UserService() {
 
   def findByName(userName: Name): IO[User] =
     searchResult(UserRepository.userByName(userName))
+
+  def changeBudget(user: User, players: List[Player]): IO[Int] =
+    UserRepository.changeBudget(user.id, user.budget, players)
 }

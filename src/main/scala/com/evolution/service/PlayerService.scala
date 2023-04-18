@@ -5,7 +5,9 @@ import com.evolution.domain.{Club, GameWeek, Id, Name, Player, Position, Statist
 import com.evolution.repository._
 
 final case class PlayerService() {
+
   def showListOfPlayers(): IO[List[Player]] = {
+    //implicit val playerOrdering1: Ordering[Player] = Ordering.fromLessThan(_.price.value < _.price.value)
     implicit val playerOrdering2: Ordering[Player] = Ordering.fromLessThan(_.price.value > _.price.value)
     PlayerRepository.listOfPlayers().map(_.sorted(playerOrdering2))
   }

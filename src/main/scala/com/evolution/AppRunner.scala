@@ -36,7 +36,7 @@ object AppRunner extends IOApp {
     } yield println(s"#  " + player)
       command3 <- IO.readLine
       list     <- IO(command3.split(' ').map(_.toInt))
-      _        <- TeamService().createTeam(Name(teamName), user, List(players(list(0)),players(list(1)),players(list(2)), players(list(3)), players(list(4)),players(list(5)),players(list(6)),players(list(7)), players(list(8)), players(list(9)),players(list(10)),players(list(11)),players(list(12)), players(list(13)), players(list(14))), players(list(5)))
+      _        <- TeamService().createTeam(Name(teamName), user.get, List(players(list(0)),players(list(1)),players(list(2)), players(list(3)), players(list(4)),players(list(5)),players(list(6)),players(list(7)), players(list(8)), players(list(9)),players(list(10)),players(list(11)),players(list(12)), players(list(13)), players(list(14))), players(list(5)))
       team     <- TeamService().findByName(Name(teamName))
       _        <- TeamService().updateTeamStat(team.get, GameWeek(1))
     } yield ExitCode.Success

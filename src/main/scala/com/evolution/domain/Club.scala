@@ -1,5 +1,6 @@
 package com.evolution.domain
 import enumeratum._
+import io.circe.{Decoder, Encoder}
 sealed trait Club extends EnumEntry
 
 final case object Club extends Enum[Club] with DoobieEnum[Club] {
@@ -26,4 +27,10 @@ final case object Club extends Enum[Club] with DoobieEnum[Club] {
     final case object Wolverhampton extends Club
 
     val values = findValues
+
+    implicit val decodeAccess: Decoder[Club] =
+        Decoder.forProduct1("club")(Club.values)
+
+    implicit val encodeAccess: Encoder[Club] =
+        Encoder.forProduct1("club")(club => club.entryName)
 }

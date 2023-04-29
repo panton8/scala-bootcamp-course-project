@@ -1,6 +1,7 @@
 package com.evolution.domain
 
 import doobie.util.{Read, Write}
+import io.circe.{Decoder, Encoder}
 
 final case class Team(
   id: Id,
@@ -11,6 +12,31 @@ final case class Team(
 )
 
 object Team {
+
+  implicit val teamDecoder: Decoder[Team] =
+    Decoder.forProduct5(
+      "id",
+      "name",
+      "points",
+      "freeTransfers",
+      "players"
+    )(Team.apply)
+
+  implicit val encodeUser: Encoder[Team] =
+    Encoder.forProduct5(
+      "id",
+      "name",
+      "points",
+      "freeTransfers",
+      "players"
+    )(team => (
+      team.id.value,
+      team.name.value,
+      team.points.value,
+      team.freeTransfers.value,
+      team.players
+    ))
+
   implicit val teamRead: Read[Team] = Read[(Int, String, Int, Int)].map {
     case (id, name, points, transfers_amount) => Team(Id(id), Name(name), Points(points), Transfer(transfers_amount))
   }

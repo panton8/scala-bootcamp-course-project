@@ -3,7 +3,8 @@ package com.evolution.domain
 import com.evolution.domain.GamePlace.Starter
 import com.evolution.domain.Role.{Captain, Ordinary}
 import com.evolution.domain.Status.{Healthy, Injured}
-import doobie.util.{Read, Write}
+import io.circe.{Decoder, Encoder}
+
 final case class Statistic(
   gameWeek: GameWeek,
   goals:Int,
@@ -17,6 +18,43 @@ final case class Statistic(
 )
 
 object Statistic {
+
+  implicit val decodeUser: Decoder[Statistic] =
+    Decoder.forProduct9(
+      "gameWeek",
+      "goals",
+      "assists",
+      "minutes",
+      "ownGoals",
+      "yellowCard",
+      "redCard",
+      "saves",
+      "cleanSheet"
+    )(Statistic.apply)
+
+  implicit val encodeUser: Encoder[Statistic] =
+    Encoder.forProduct9(
+      "gameWeek",
+      "goals",
+      "assists",
+      "minutes",
+      "ownGoals",
+      "yellowCard",
+      "redCard",
+      "saves",
+      "cleanSheet"
+    )(stat => (
+      stat.gameWeek,
+      stat.goals,
+      stat.assists,
+      stat.minutes,
+      stat.ownGoals,
+      stat.yellowCard,
+      stat.redCard,
+      stat.saves,
+      stat.cleanSheet
+      ))
+
   def countPoints(statistic: Statistic, healthStatus: Status = Healthy, gamePlace: GamePlace = Starter, role: Role = Ordinary) = {
     val points = Goal.points(statistic.goals).value +
       Assist.points(statistic.assists).value +
@@ -27,6 +65,5 @@ object Statistic {
       OwnGoal.points(statistic.ownGoals).value +
       Saves.points(statistic.saves).value
     if (healthStatus == Injured) 0 else if (role == Captain && gamePlace == Starter) points * 2 else points
-
   }
 }

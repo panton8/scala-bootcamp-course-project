@@ -131,7 +131,7 @@ object PlayerRepository{
       .run
       .transact(xa)
 
-  def updateStatistics(statistic: Statistic, player: Id): IO[Option[Int]] =
+  def updateStatistics(statistic: Statistic, player: Id, gameWeek: GameWeek): IO[Option[Int]] =
     fr"""
         INSERT INTO
             statistics (
@@ -148,7 +148,7 @@ object PlayerRepository{
              )
         VALUES
             (
-               ${statistic.gameWeek.value},
+               ${gameWeek.value},
                ${statistic.goals},
                ${statistic.assists},
                ${statistic.minutes},
@@ -168,7 +168,6 @@ object PlayerRepository{
   def showPlayerStatisticsByWeek(playerId: Id, gameWeek: GameWeek): IO[Statistic] =
     fr"""
         SELECT
-            game_week,
             goals,
             assists,
             minutes,
@@ -190,7 +189,6 @@ object PlayerRepository{
   def showTotalPlayerStatistics(playerId: Id):IO[Statistic] =
     fr"""
         SELECT
-            MAX(game_week),
             SUM(goals),
             SUM(assists),
             SUM(minutes),

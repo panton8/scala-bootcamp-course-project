@@ -24,29 +24,29 @@ final case class PlayerService() {
   def findById(id: Id): IO[Option[Player]] =
     PlayerRepository.playerById(id)
 
-  def addMatchActions(player: Player, statistic: Statistic): IO[Option[Int]] =
-    PlayerRepository.updateStatistics(statistic, player.id)
+  def addMatchActions(playerId: Id, statistic: Statistic, gameWeek: GameWeek): IO[Option[Int]] =
+    PlayerRepository.updateStatistics(statistic, playerId, gameWeek)
 
 
-  def takeTotalStatistic(player: Player): IO[Statistic] =
-    PlayerRepository.showTotalPlayerStatistics(player.id)
+  def takeTotalStatistic(playerId: Id): IO[Statistic] =
+    PlayerRepository.showTotalPlayerStatistics(playerId)
 
-  def takeWeekStatistic(player: Player, gameWeek: GameWeek): IO[Statistic] =
-    PlayerRepository.showPlayerStatisticsByWeek(player.id, gameWeek)
+  def takeWeekStatistic(playerId: Id, gameWeek: GameWeek): IO[Statistic] =
+    PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
 
-  def getInjured(player: Player): IO[Int] =
-    PlayerRepository.getInjured(player.id)
+  def getInjured(playerId: Id): IO[Int] =
+    PlayerRepository.getInjured(playerId)
 
-  def getRecovered(player: Player): IO[Int] =
-    PlayerRepository.getRecovered(player.id)
+  def getRecovered(playerId: Id): IO[Int] =
+    PlayerRepository.getRecovered(playerId)
 
-  def giveTotalPoints(player: Player): IO[Int] = for {
-    stat <- PlayerRepository.showTotalPlayerStatistics(player.id)
+  def giveTotalPoints(playerId: Id): IO[Int] = for {
+    stat <- PlayerRepository.showTotalPlayerStatistics(playerId)
     points = Statistic.countPoints(stat)
   } yield points
 
-  def givePointsByWeek(player: Player, gameWeek: GameWeek): IO[Int] = for {
-    stat <- PlayerRepository.showPlayerStatisticsByWeek(player.id, gameWeek)
-    point = Statistic.countPoints(stat, player.status)
+  def givePointsByWeek(playerId: Id, gameWeek: GameWeek): IO[Int] = for {
+    stat <- PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
+    point = Statistic.countPoints(stat)
   } yield point
 }

@@ -1,10 +1,9 @@
 package com.evolution.domain
 
-import com.evolution.domain.GamePlace.Starter
-import com.evolution.domain.Role.Ordinary
 import com.evolution.domain.Status.Healthy
 import doobie.util.{Read, Write}
-import io.circe.{Decoder, Encoder}
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder, Json}
 
 final case class Player(
   id: Id,
@@ -14,46 +13,40 @@ final case class Player(
   price: Price,
   position: Position,
   status: Status = Healthy,
-  stat: Map[GameWeek, Statistic] = Map()
 )
 
 object Player {
 
-  implicit val decodeMap = Decoder.decodeMap[GameWeek, Statistic]
-  implicit val encodeMap = Encoder.encodeMap[GameWeek, Statistic]
+  implicit val jsonDecoder: Decoder[Player] = cursor =>
+    for {
+      id       <- cursor.get[Int]("id")
+      name     <- cursor.get[String]("name")
+      surname  <- cursor.get[String]("surname")
+      club     <- cursor.get[String]("club")
+      price    <- cursor.get[Double]("price")
+      position <- cursor.get[String]("position")
+      status   <- cursor.get[String]("status")
+    } yield Player(
+      Id(id),
+      Name(name),
+      Surname(surname),
+      Club.withName(club),
+      Price(price),
+      Position.withName(position),
+      Status.withName(status)
+    )
 
-  implicit val playerDecoder: Decoder[Player] =
-    Decoder.forProduct8(
-      "id",
-      "name",
-      "surname",
-      "club",
-      "price",
-      "position",
-      "status",
-      "stat"
-    )(Player.apply)
-
-  implicit val playerEncoder: Encoder[Player] =
-    Encoder.forProduct8(
-      "id",
-      "name",
-      "surname",
-      "club",
-      "price",
-      "position",
-      "status",
-      "stat"
-    )(player =>(
-      player.id.value,
-      player.name.value,
-      player.surname.value,
-      player.club.entryName,
-      player.price.value,
-      player.position.entryName,
-      player.status,
-      player.stat
-    ))
+  implicit val jsonEncoder: Encoder[Player] = Encoder.instance {
+    case Player(id, name, surname, club, price, position, status) => Json.obj(
+      "id" -> id.value.asJson,
+      "name"      -> name.value.asJson,
+      "surname"   -> surname.value.asJson,
+      "club"      -> club.entryName.asJson,
+      "price"     -> price.value.asJson,
+      "position"  -> position.entryName.asJson,
+      "status"    -> status.entryName.asJson
+    )
+  }
 
   implicit val playerRead: Read[Player] = Read[(Int, String, String, Club, Double, Position,Status)].map {
     case (id, name, surname, club, price, position, status) =>

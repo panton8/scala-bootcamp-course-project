@@ -1,41 +1,34 @@
 package com.evolution.domain
 
 import doobie.util.{Read, Write}
-import io.circe.{Decoder, Encoder}
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder, Json}
 
 final case class Team(
   id: Id,
   name: Name,
   points: Points = Points(0),
   freeTransfers: Transfer = Transfer(2),
-  players: List[Player] = Nil
 )
 
 object Team {
 
-  implicit val teamDecoder: Decoder[Team] =
-    Decoder.forProduct5(
-      "id",
-      "name",
-      "points",
-      "freeTransfers",
-      "players"
-    )(Team.apply)
+  implicit val jsonDecoder: Decoder[Team] = cursor =>
+    for {
+      id        <- cursor.get[Int]("id")
+      name      <- cursor.get[String]("name")
+      points    <- cursor.get[Int]("points")
+      transfers <- cursor.get[Int]("freeTransfers")
+    } yield Team(Id(id), Name(name), Points(points),Transfer(transfers))
 
-  implicit val encodeUser: Encoder[Team] =
-    Encoder.forProduct5(
-      "id",
-      "name",
-      "points",
-      "freeTransfers",
-      "players"
-    )(team => (
-      team.id.value,
-      team.name.value,
-      team.points.value,
-      team.freeTransfers.value,
-      team.players
-    ))
+  implicit val jsonEncoder: Encoder[Team] = Encoder.instance {
+    case Team(id, name, points, transfers) => Json.obj(
+      "id"     -> id.value.asJson,
+      "name"          -> name.value.asJson,
+      "points"        -> points.value.asJson,
+      "freeTransfers" -> transfers.value.asJson,
+    )
+  }
 
   implicit val teamRead: Read[Team] = Read[(Int, String, Int, Int)].map {
     case (id, name, points, transfers_amount) => Team(Id(id), Name(name), Points(points), Transfer(transfers_amount))

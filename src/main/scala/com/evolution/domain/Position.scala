@@ -12,10 +12,4 @@ final case object Position extends Enum[Position] with DoobieEnum[Position] {
   final case object Goalkeeper extends Position("GKP")
 
   val values = findValues
-
-  implicit val decodeAccess: Decoder[Position] =
-    Decoder.forProduct1("position")(Position.values)
-
-  implicit val encodeAccess: Encoder[Position] =
-    Encoder.forProduct1("position")(pos => pos.entryName)
 }

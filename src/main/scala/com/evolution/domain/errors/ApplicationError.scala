@@ -15,5 +15,5 @@ object AuthenticationError {
     Decoder.forProduct1("error")(AuthenticationError.apply)
 
   implicit val userRegEncoder: Encoder[AuthenticationError] =
-    Encoder.forProduct1("error")(e => ge.msg)
+    Encoder.forProduct1("error")(e => e.msg)
 }

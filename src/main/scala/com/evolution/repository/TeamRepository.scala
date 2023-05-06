@@ -1,15 +1,18 @@
 package com.evolution.repository
 
-import cats.effect.IO
+import cats.effect.{Deferred, ExitCode, IO, IOApp}
 import com.evolution.domain.Role.{Captain, Ordinary}
-import com.evolution.domain.{GameWeek, Id, Name, Player, Points, Statistic, Team, Transfer}
+import com.evolution.domain.{Club, GameWeek, Id, Name, Player, Points, Price, Role, Statistic, Surname, Team, Transfer}
 import doobie.implicits.toSqlInterpolator
 import doobie.implicits._
 import com.evolution.repository.UserRepository.xa
 import doobie.util.update.Update
 import cats.implicits._
 import com.evolution.domain.GamePlace.{Starter, Substituter}
+import com.evolution.domain.Position.Defender
+import com.evolution.domain.Status.Healthy
 import com.evolution.repository.domain.TeamConnection
+import com.evolution.service.TeamService
 
 
 object TeamRepository {
@@ -35,7 +38,7 @@ object TeamRepository {
         INSERT INTO
             teams (name, points, available_transfers, user_id)
         VALUES
-            (${ name.value }, ${ 0 }, ${ 2 }, ${ userId.value })
+            (${name.value}, ${0}, ${2}, ${userId.value})
       """
       .update
       .withUniqueGeneratedKeys[Int]("id")
@@ -58,8 +61,8 @@ object TeamRepository {
         DELETE FROM
             teams_players
         WHERE
-            player_id = ${ player.id.value }
-            AND team_id = ${ teamId.value }
+            player_id = ${player.id.value}
+            AND team_id = ${teamId.value}
       """
       .update
       .run
@@ -71,10 +74,10 @@ object TeamRepository {
             teams_players (team_id, player_id, player_role, player_place)
         VALUES
             (
-                ${ teamId.value },
-                ${ player.id.value },
-                ${ Ordinary.entryName },
-                ${ Starter.entryName }
+                ${teamId.value},
+                ${player.id.value},
+                ${Ordinary.entryName},
+                ${Starter.entryName}
             )
       """
       .update
@@ -88,7 +91,7 @@ object TeamRepository {
         FROM
             teams
         WHERE
-            id = ${ teamId.value }
+            id = ${teamId.value}
       """
       .query[Id]
       .unique
@@ -100,10 +103,10 @@ object TeamRepository {
         UPDATE
             teams_players
         SET
-            player_role = ${ Captain.entryName }
+            player_role = ${Captain.entryName}
         WHERE
-            player_id = ${ player.id.value }
-            AND team_id = ${ teamId.value }
+            player_id = ${player.id.value}
+            AND team_id = ${teamId.value}
       """
       .update
       .run
@@ -114,10 +117,10 @@ object TeamRepository {
         UPDATE
             teams_players
         SET
-            player_role = ${ Ordinary.entryName }
+            player_role = ${Ordinary.entryName}
         WHERE
-            player_id != ${ player.id.value }
-            AND team_id = ${ teamId.value }
+            player_id != ${player.id.value}
+            AND team_id = ${teamId.value}
       """
       .update
       .run
@@ -133,7 +136,7 @@ object TeamRepository {
         FROM
             teams
         WHERE
-            id = ${ id.value }
+            id = ${id.value}
       """
       .query[Team]
       .option.
@@ -149,7 +152,7 @@ object TeamRepository {
         FROM
             teams
         WHERE
-            name = ${ name.value }
+            name = ${name.value}
       """
       .query[Team]
       .option
@@ -165,8 +168,8 @@ object TeamRepository {
                 ELSE $Starter
             END
         WHERE
-            team_id = ${ teamId.value }
-            AND player_id = ${ playerId.value }
+            team_id = ${teamId.value}
+            AND player_id = ${playerId.value}
       """
       .update
       .run
@@ -202,8 +205,8 @@ object TeamRepository {
             INNER JOIN players p ON tp.player_id = p.id
             INNER JOIN statistics s ON tp.player_id = s.player_id
         WHERE
-            t.id = ${ teamId.value }
-            AND s.game_week = ${ gameWeek.value }
+            t.id = ${teamId.value}
+            AND s.game_week = ${gameWeek.value}
       """
       .query[TeamConnection]
       .to[List]
@@ -215,7 +218,6 @@ object TeamRepository {
             Points(teamC.map(stat =>
               Statistic.countPoints(
                 Statistic(
-                  stat.gameWeek,
                   stat.goals,
                   stat.assists,
                   stat.minutes,
@@ -224,47 +226,21 @@ object TeamRepository {
                   stat.redCards,
                   stat.saves,
                   stat.cleanSheet),
-                stat.status,
-                stat.gamePlace,
                 stat.role)).sum),
             teamC.head.freeTransfers,
-            teamC.map(player =>
-              Player(
-                player.playerId,
-                player.playerName,
-                player.playerSurname,
-                player.club,
-                player.price,
-                player.position,
-                player.status,
-                Map(player.gameWeek ->
-                  Statistic(
-                    player.gameWeek,
-                    player.goals,
-                    player.assists,
-                    player.minutes,
-                    player.ownGoals,
-                    player.yellowCards,
-                    player.redCards,
-                    player.saves,
-                    player.cleanSheet
-                  )
-                )
-              )
-            )
           )
       )
       .transact(xa)
   }
 
-  def makeTransfer(teamId: Id, currTransfers:Transfer): IO[Int] =
+  def makeTransfer(teamId: Id, currTransfers: Transfer): IO[Int] =
     fr"""
         UPDATE
             teams
         SET
-            available_transfers = ${ currTransfers.value - 1 }
+            available_transfers = ${currTransfers.value - 1}
         WHERE
-            id = ${ teamId.value }
+            id = ${teamId.value}
       """
       .update
       .run
@@ -275,12 +251,62 @@ object TeamRepository {
         UPDATE
             teams
         SET
-            points = ${ currPoints.value + weekPoints.value },
-            available_transfers = ${ if (transfers.value == 2) 2 else transfers.value + 1 }
+            points = ${currPoints.value + weekPoints.value},
+            available_transfers = ${if (transfers.value == 2) 2 else transfers.value + 1}
         WHERE
-            id = ${ teamId.value }
+            id = ${teamId.value}
       """
       .update
       .run
+      .transact(xa)
+
+  def playersFromTeam(teamId: Id) =
+    fr"""
+        SELECT
+            p.id AS player_id,
+            p.name,
+            p.surname,
+            p.club,
+            p.price,
+            p.pos,
+            p.health_status
+        FROM
+            teams t
+            INNER JOIN teams_players tp ON t.id = tp.team_id
+            INNER JOIN players p ON tp.player_id = p.id
+        WHERE
+            t.id = ${teamId.value}
+      """
+      .query[Player]
+      .stream
+      .compile
+      .toList
+      .transact(xa)
+
+  def getRole(playerId: Id, teamId: Id): IO[Option[Role]] =
+    fr"""
+        SELECT
+            player_role
+        FROM
+            teams_players
+        WHERE
+            team_id = ${teamId.value}
+            AND player_id = ${playerId.value}
+      """
+      .query[Role]
+      .option
+      .transact(xa)
+
+  def teamOwner(teamId: Id): IO[Option[Id]] =
+    fr"""
+        SELECT
+            user_id
+        FROM
+            teams
+        WHERE
+            id = ${teamId.value}
+      """
+      .query[Id]
+      .option
       .transact(xa)
 }

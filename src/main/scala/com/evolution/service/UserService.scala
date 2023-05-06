@@ -17,28 +17,32 @@ final case class UserService() {
       user          <- UserRepository.userById(Id(userId))
   } yield  user
 
-  private def searchResult(io: IO[Option[User]]): IO[User] = for {
+  /*private def searchResult(io: IO[Option[User]]): IO[User] = for {
     possibleUser <- io
     res          <- possibleUser match {
       case Some(user) => IO.pure(user)
       case None       => IO.raiseError(SuchUserDoesNotExist)
     }
-  } yield res
+  } yield res*/
 
-  def signIn(email: Email, password: Password): IO[User] =
-    searchResult(UserRepository.getUser(email, password))
+  def signIn(email: Email, password: Password): IO[Option[User]] =
+    UserRepository.getUser(email, password)
+    //searchResult(UserRepository.getUser(email, password))
 
-  def showListOfUsers: IO[List[User]] =
+  def showListOfUsers(): IO[List[User]] =
     UserRepository.listOfUsers()
 
-  def findById(id: Id): IO[User] =
-    searchResult(UserRepository.userById(id))
+  def findById(id: Id): IO[Option[User]] =
+    UserRepository.userById(id)
+    //searchResult(UserRepository.userById(id))
 
-  def findByEmail(email: Email): IO[User] =
-    searchResult(UserRepository.userByEmail(email))
+  def findByEmail(email: Email): IO[Option[User]] =
+    UserRepository.userByEmail(email)
+    //searchResult(UserRepository.userByEmail(email))
 
-  def findByName(userName: Name): IO[User] =
-    searchResult(UserRepository.userByName(userName))
+  def findByName(userName: Name): IO[Option[User]] =
+    UserRepository.userByName(userName)
+    //searchResult(UserRepository.userByName(userName))
 
   def changeBudget(user: User, players: List[Player]): IO[Int] =
     UserRepository.changeBudget(user.id, user.budget, players)

@@ -4,9 +4,7 @@ import cats.effect._
 import com.evolution.domain.{Club, GameWeek, Id, Name, Position, Statistic, Surname}
 import com.evolution.http.domain.PlayerStatistics
 import com.evolution.service.PlayerService
-import org.http4s.circe._
 import org.http4s._
-import io.circe.syntax._
 import org.http4s.circe.CirceEntityCodec.{circeEntityDecoder, circeEntityEncoder}
 import org.http4s.dsl._
 
@@ -17,11 +15,11 @@ object PlayerRoutes {
     import dsl._
     HttpRoutes.of[IO] {
       case GET -> Root / "players" =>
-        playerService.showListOfPlayers().flatMap(players => Ok(players.asJson))
+        playerService.showListOfPlayers().flatMap(players => Ok(players).handleErrorWith(e => BadRequest(e.getMessage)))
 
       case GET -> Root / "players" / IntVar(id) =>
         playerService.findById(Id(id)) flatMap {
-          case Some(player) => Ok(player.asJson)
+          case Some(player) => Ok(player)
           case None         => NotFound()
         }
 
@@ -32,7 +30,10 @@ object PlayerRoutes {
         playerService.showListOfPlayersByPosition(Position.withName(position)).flatMap(players => Ok(players))
 
       case GET -> Root / "players" / name / surname =>
-        playerService.findByName(Name(name), Surname(surname)).flatMap(player => Ok(player))
+        playerService.findByName(Name(name), Surname(surname)).flatMap {
+          case Some(player) => Ok(player)
+          case None         => BadRequest("No such player")
+        }
 
       case GET -> Root / "players" / IntVar(id) / "statistics" / "total" =>
         playerService.takeTotalStatistic(Id(id)).flatMap(statistics => Ok(statistics))
@@ -46,28 +47,28 @@ object PlayerRoutes {
       case GET -> Root / "players" / IntVar(id) / "points" / "week" / IntVar(week) =>
         playerService.givePointsByWeek(Id(id), GameWeek(week)).flatMap(points => Ok(points))
 
-      case PUT -> Root / "players"/ IntVar(id) / "recovered" / "injured" =>
+      case PUT -> Root / "players"/ IntVar(id) / "health" / "injured" =>
           playerService.getInjured(Id(id)).flatMap(upd => Ok())
 
-      case PUT -> Root / "players" / IntVar(id) / "recovered" / "recovered" =>
+      case PUT -> Root / "players" / IntVar(id) / "health" / "recovered" =>
         playerService.getRecovered(Id(id)).flatMap(upd => Ok())
 
       case req @ POST -> Root / "players" / "statistics" / "matchweek" =>
         for {
-          userReg <- req.as[PlayerStatistics]
+          playerStat <- req.as[PlayerStatistics]
           plStat <- playerService.addMatchActions(
-            userReg.playerId,
+            playerStat.playerId,
             Statistic(
-              userReg.goals,
-              userReg.assists,
-              userReg.minutes,
-              userReg.ownGoals,
-              userReg.yellowCard,
-              userReg.redCard,
-              userReg.saves,
-              userReg.cleanSheet
+              playerStat.goals,
+              playerStat.assists,
+              playerStat.minutes,
+              playerStat.ownGoals,
+              playerStat.yellowCard,
+              playerStat.redCard,
+              playerStat.saves,
+              playerStat.cleanSheet
             ),
-            userReg.gameWeek
+            playerStat.gameWeek
           )
           response <- plStat match {
             case Some(_) => Ok()

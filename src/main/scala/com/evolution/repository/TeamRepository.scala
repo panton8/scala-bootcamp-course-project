@@ -84,20 +84,6 @@ object TeamRepository {
       .run
       .transact(xa)
 
-  def teamCoach(teamId: Id): IO[Id] = {
-    fr"""
-        SELECT
-            user_id
-        FROM
-            teams
-        WHERE
-            id = ${teamId.value}
-      """
-      .query[Id]
-      .unique
-      .transact(xa)
-  }
-
   def setCaptain(player: Player, teamId: Id): IO[Int] =
     fr"""
         UPDATE
@@ -305,6 +291,41 @@ object TeamRepository {
             teams
         WHERE
             id = ${teamId.value}
+      """
+      .query[Id]
+      .option
+      .transact(xa)
+
+  def deleteTeam(teamId: Id) =
+    fr"""
+        DELETE FROM
+            teams
+        WHERE
+            id = ${teamId.value}
+      """
+      .update
+      .run
+      .transact(xa)
+
+  def deleteTeamPlayers(teamId: Id): IO[Int] =
+    fr"""
+        DELETE FROM
+            teams_players
+        WHERE
+            team_id = ${teamId.value}
+      """
+      .update
+      .run
+      .transact(xa)
+
+  def findByOwner(userId: Id): IO[Option[Id]] =
+    fr"""
+        SELECT
+            id
+        FROM
+            teams
+        WHERE
+            user_id = ${userId.value}
       """
       .query[Id]
       .option

@@ -124,5 +124,16 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, Player, 
        .update
        .run
        .transact(xa)
+
+   def banUser(email: Email): IO[Int] =
+     fr"""
+        DELETE FROM
+            users
+        WHERE
+            email = ${email.value}
+      """
+       .update
+       .run
+       .transact(xa)
 }
 

@@ -17,14 +17,6 @@ final case class UserService() {
       user          <- UserRepository.userById(Id(userId))
   } yield  user
 
-  /*private def searchResult(io: IO[Option[User]]): IO[User] = for {
-    possibleUser <- io
-    res          <- possibleUser match {
-      case Some(user) => IO.pure(user)
-      case None       => IO.raiseError(SuchUserDoesNotExist)
-    }
-  } yield res*/
-
   def signIn(email: Email, password: Password): IO[Option[User]] =
     UserRepository.getUser(email, password)
     //searchResult(UserRepository.getUser(email, password))
@@ -46,4 +38,22 @@ final case class UserService() {
 
   def changeBudget(user: User, players: List[Player]): IO[Int] =
     UserRepository.changeBudget(user.id, user.budget, players)
+
+  def deleteTeamWithPlayers(teamId: Id): IO[Unit] = for {
+    _ <- TeamRepository.deleteTeamPlayers(teamId)
+    _ <- TeamRepository.deleteTeam(teamId)
+  } yield ()
+
+  def deleteUser(email: Email): IO[Unit] = for {
+    user <- UserRepository.userByEmail(email)
+    teamId <- user match {
+      case Some(user) => TeamRepository.findByOwner(user.id)
+      case None       => IO.raiseError(SuchUserDoesNotExist)
+    }
+    _ <- teamId match {
+      case Some(id) => deleteTeamWithPlayers(id)
+      case None     => IO.unit
+    }
+    _ <- UserRepository.banUser(email)
+  } yield ()
 }

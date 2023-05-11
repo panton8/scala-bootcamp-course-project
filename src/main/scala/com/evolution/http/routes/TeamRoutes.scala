@@ -1,15 +1,36 @@
 package com.evolution.http.routes
 
 import cats.effect._
+import cats.implicits.toSemigroupKOps
+import com.evolution.domain.Access.{Admin, Base}
 import com.evolution.domain.errors.SuchTeamDoesNotExist
-import com.evolution.domain.{GameWeek, Id, Player}
+import com.evolution.domain.{GameWeek, Id, Player, User}
+import com.evolution.http.auth.Auth.{authUser, inAuthFailure}
 import com.evolution.http.domain.TeamCreation
 import com.evolution.service.TeamService
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.dsl._
+import org.http4s.dsl.io._
+import org.http4s.server.AuthMiddleware
 
 object TeamRoutes {
+  private val teamService: TeamService = TeamService()
+
+  val middleware: AuthMiddleware[IO, User] =
+    AuthMiddleware(authUser, inAuthFailure)
+
+  val service: HttpRoutes[IO] = middleware(authedRoutes(teamService)) <+> routes(teamService)
+
+  def authedRoutes(teamService: TeamService): AuthedRoutes[User, IO] =
+    AuthedRoutes.of {
+      case PUT -> Root / "teams" / IntVar(id) / "matchweek" / IntVar(currentWeek) / "update" / "points" as user =>
+        user.access match {
+          case Base  => IO(Response(Unauthorized))
+          case Admin => teamService.updateTeamStat(Id(id), GameWeek(currentWeek)) flatMap (_ =>
+            Ok().handleErrorWith(e => BadRequest(e.getMessage)))
+        }
+    }
 
   def routes(teamService: TeamService): HttpRoutes[IO] = {
     val dsl = Http4sDsl[IO]
@@ -38,9 +59,6 @@ object TeamRoutes {
           newCaptain <- req.as[Player]
           response   <- Ok(teamService.resetCaptain(Id(id), newCaptain))
         } yield response
-
-      case PUT -> Root / "teams" / IntVar(id) / "matchweek" / IntVar(currentWeek) / "update" / "points" =>
-        teamService.updateTeamStat(Id(id),GameWeek(currentWeek)) flatMap(_ => Ok().handleErrorWith(e => BadRequest(e.getMessage)))
 
       case req @ PUT -> Root / "teams" / IntVar(teamId) / "update" / "line-up" =>
         for {

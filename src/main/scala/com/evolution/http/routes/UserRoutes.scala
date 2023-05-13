@@ -3,9 +3,10 @@ package com.evolution.http.routes
 import cats.effect.IO
 import cats.implicits.toSemigroupKOps
 import com.evolution.domain.Access.{Admin, Base}
+import com.evolution.domain.errors.SuchUserDoesNotExist
 import com.evolution.domain.{Email, Id, User}
 import com.evolution.http.auth.Auth.{authUser, inAuthFailure}
-import com.evolution.http.domain.UserRegistration
+import com.evolution.http.domain.{UserRegistration, UserSignIn}
 import com.evolution.service.UserService
 import org.http4s.{AuthedRoutes, HttpRoutes, Response}
 import org.http4s.circe.CirceEntityCodec._
@@ -37,10 +38,19 @@ object UserRoutes {
     import dsl._
 
     HttpRoutes.of[IO] {
+
+      case req @ GET -> Root / "users" / "login" =>
+        req.decode[UserSignIn] { newUser =>
+          userService.signIn(newUser.email, newUser.password) flatMap {
+            case Some(user) => Ok(user)
+            case None       => BadRequest(SuchUserDoesNotExist.getMessage)
+          }
+        }
+
       case GET -> Root / "users" =>
         userService.showListOfUsers().flatMap(users => Ok(users))
 
-      case req @ POST -> Root / "users"  =>
+      case req @ POST -> Root / "users"/ "register"  =>
         req.decode[UserRegistration] { userReg =>
           userService.registration(userReg.userName, userReg.email, userReg.password) flatMap {
             case Some(user) => Ok(user)

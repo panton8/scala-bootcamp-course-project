@@ -4,16 +4,20 @@ import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s.server.Router
 import org.http4s.implicits._
 import com.evolution.http.routes.{PlayerRoutes, TeamRoutes, UserRoutes}
-
+import com.evolution.service.{PlayerService, TeamService, UserService}
 import org.http4s.ember.server.EmberServerBuilder
 
 
 object AppServer extends IOApp {
 
+  private val userService = UserService()
+  private val teamService = TeamService()
+  private val playerService = PlayerService()
+
   private val httpRoutes = Router[IO](
-    "/" -> UserRoutes.service,
-    "/" -> TeamRoutes.service,
-    "/" -> PlayerRoutes.service
+    "/" -> UserRoutes(userService).routes,
+    "/" -> TeamRoutes(teamService).routes,
+    "/" -> PlayerRoutes(playerService).routes
   ).orNotFound
 
   override def run(args: List[String]): IO[ExitCode] = {

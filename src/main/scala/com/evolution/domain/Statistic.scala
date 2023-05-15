@@ -43,15 +43,15 @@ object Statistic {
     )
   }
 
-  def countPoints(statistic: Statistic, role: Role = Ordinary) = {
-    val points = Goal.points(statistic.goals).value +
-      Assist.points(statistic.assists).value +
-      Minutes.points(statistic.minutes).value +
-      YellowCard.points(statistic.yellowCard).value +
-      RedCard.points(statistic.redCard).value +
-      CleanSheet.points(statistic.cleanSheet).value +
-      OwnGoal.points(statistic.ownGoals).value +
-      Saves.points(statistic.saves).value
+  def countPoints(statistic: Statistic, position: Position, role: Role = Ordinary) = {
+    val points = Goal.points(statistic.goals, position).value +
+      Assist.points(statistic.assists, position).value +
+      Minutes.points(statistic.minutes, position).value +
+      YellowCard.points(statistic.yellowCard, position).value +
+      RedCard.points(statistic.redCard, position).value +
+      CleanSheet.points(statistic.cleanSheet, position).value +
+      OwnGoal.points(statistic.ownGoals, position).value +
+      Saves.points(statistic.saves, position).value
     if (role == Captain) points * 2 else points
   }
 }

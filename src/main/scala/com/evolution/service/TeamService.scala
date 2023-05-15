@@ -1,22 +1,18 @@
 package com.evolution.service
 
-import cats.data.{NonEmptyChain, OptionT}
-import cats.effect.{ExitCode, IO, IOApp}
-import com.evolution.domain.Club.{Bournemouth, ManCity}
-import com.evolution.domain.Position.Forward
-import com.evolution.domain.Role.{Captain, Ordinary}
-import com.evolution.domain.Status.Healthy
+import cats.effect.IO
+import com.evolution.domain.Role.Captain
 import com.evolution.domain.errors.{NonAvailableTransfer, PriseMoreThanBudget, SuchTeamDoesNotExist, SuchUserDoesNotExist}
-import com.evolution.domain.{Budget, GameWeek, Id, Name, Player, Price, Role, Surname, Team, User}
+import com.evolution.domain.{Budget, GameWeek, Id, Name, Player, Team}
 import com.evolution.repository._
 
 final case class TeamService() {
 
   def showListOfTeams(): IO[List[Team]] = {
     //TeamRepository.listOfTeams()
-    implicit val teamOrdering1: Ordering[Team] = Ordering.fromLessThan(_.points.value < _.points.value)
-    //implicit val teamOrdering2: Ordering[Team] = Ordering.fromLessThan(_.points.value > _.points.value)
-    TeamRepository.listOfTeams().map(_.sorted(teamOrdering1))
+    //implicit val teamOrdering1: Ordering[Team] = Ordering.fromLessThan(_.points.value < _.points.value)
+    implicit val teamOrdering2: Ordering[Team] = Ordering.fromLessThan(_.points.value > _.points.value)
+    TeamRepository.listOfTeams().map(_.sorted(teamOrdering2))
     //TeamRepository.listOfTeams().map(_.sorted(teamOrdering2))
   }
 
@@ -87,13 +83,9 @@ final case class TeamService() {
       } yield ()
     }
 
-  def updateTeamStat(teamId: Id, currentWeek: GameWeek): IO[Unit] = for {
-    updateTeam <- TeamRepository.teamPoints(teamId, currentWeek)
-    posTeam <- TeamRepository.teamById(teamId)
-    _ <- posTeam match {
-      case Some(team) => TeamRepository.updateTeamInfo(teamId, team.points, updateTeam.points, team.freeTransfers)
-      case None       => IO.raiseError(SuchTeamDoesNotExist)
-    }
+  def updateTeamStat(team: Team, currentWeek: GameWeek): IO[Unit] = for {
+    updateTeam <- TeamRepository.teamPoints(team.id, currentWeek)
+    _          <- TeamRepository.updateTeamInfo(team.id, team.points, updateTeam.points, team.freeTransfers)
   } yield ()
 
   def playersFromTeam(teamId: Id): IO[List[Player]] =

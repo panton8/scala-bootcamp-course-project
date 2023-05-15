@@ -212,6 +212,7 @@ object TeamRepository {
                   stat.redCards,
                   stat.saves,
                   stat.cleanSheet),
+                stat.position ,
                 stat.role)).sum),
             teamC.head.freeTransfers,
           )

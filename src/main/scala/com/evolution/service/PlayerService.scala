@@ -1,6 +1,7 @@
 package com.evolution.service
 
 import cats.effect.IO
+import com.evolution.domain.errors.SuchPlayerDoesNotExist
 import com.evolution.domain.{Club, GameWeek, Id, Name, Player, Position, Statistic, Surname}
 import com.evolution.repository._
 
@@ -41,12 +42,20 @@ final case class PlayerService() {
     PlayerRepository.getRecovered(playerId)
 
   def giveTotalPoints(playerId: Id): IO[Int] = for {
-    stat <- PlayerRepository.showTotalPlayerStatistics(playerId)
-    points = Statistic.countPoints(stat)
+    stat   <- PlayerRepository.showTotalPlayerStatistics(playerId)
+    player <- PlayerRepository.playerById(playerId)
+    points = player match {
+      case Some(player) => Statistic.countPoints(stat, player.position)
+      case None         => 0
+    }
   } yield points
 
   def givePointsByWeek(playerId: Id, gameWeek: GameWeek): IO[Int] = for {
     stat <- PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
-    point = Statistic.countPoints(stat)
-  } yield point
+    player <- PlayerRepository.playerById(playerId)
+    points = player match {
+      case Some(player) => Statistic.countPoints(stat, player.position)
+      case None         => 0
+    }
+  } yield points
 }

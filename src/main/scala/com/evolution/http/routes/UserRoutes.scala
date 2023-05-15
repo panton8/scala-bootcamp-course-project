@@ -15,7 +15,7 @@ import org.http4s.dsl.io._
 final case class UserRoutes(userService: UserService) {
 
   private def authedRoutes: AuthedRoutes[User, IO] = AuthedRoutes.of {
-      case req @ DELETE -> Root / "users" as user =>
+      case req @ DELETE -> Root as user =>
         user.access match {
           case Base  => IO(Response(Forbidden))
           case Admin => req.req.decode[Email] { email =>
@@ -23,18 +23,18 @@ final case class UserRoutes(userService: UserService) {
           }.handleErrorWith(e => BadRequest(e.getMessage))
         }
 
-      case GET -> Root / "users" as user =>
+      case GET -> Root  as user =>
         userService.showListOfUsers().flatMap(users => Ok(users))
 
-      case GET -> Root / "users" / IntVar(id) as user =>
+      case GET -> Root / IntVar(id) as user =>
         userService.findById(Id(id)) flatMap {
           case Some(user) => Ok(user)
           case None       => NotFound()
         }
     }
 
-  private def loginRoutes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-      case req @ GET -> Root / "users" / "login" =>
+  private def loginRoutes: HttpRoutes[IO] = HttpRoutes.of {
+      case req @ GET -> Root / "login" =>
         req.decode[UserSignIn] { newUser =>
           userService.signIn(newUser.email, newUser.password) flatMap {
             case Some(user) => Ok(user)
@@ -42,7 +42,7 @@ final case class UserRoutes(userService: UserService) {
           }
         }
 
-      case req @ POST -> Root / "users" / "register" =>
+      case req @ POST -> Root / "register" =>
         req.decode[UserRegistration] { userReg =>
           userService.registration(userReg.userName, userReg.email, userReg.password) flatMap {
             case Some(user) => Created(user)
@@ -51,5 +51,5 @@ final case class UserRoutes(userService: UserService) {
         }
     }
 
-  val routes: HttpRoutes[IO] = loginRoutes <+> authMiddleware.apply(authedRoutes)
+  val routes: HttpRoutes[IO] = loginRoutes <+> authMiddleware(authedRoutes)
 }

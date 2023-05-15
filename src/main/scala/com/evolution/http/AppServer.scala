@@ -15,9 +15,9 @@ object AppServer extends IOApp {
   private val playerService = PlayerService()
 
   private val httpRoutes = Router[IO](
-    "/" -> UserRoutes(userService).routes,
-    "/" -> TeamRoutes(teamService).routes,
-    "/" -> PlayerRoutes(playerService).routes
+    "users/" -> UserRoutes(userService).routes,
+    "teams/" -> TeamRoutes(teamService).routes,
+    "players/" -> PlayerRoutes(playerService).routes
   ).orNotFound
 
   override def run(args: List[String]): IO[ExitCode] = {

@@ -48,7 +48,7 @@ final case class TeamRoutes(teamService: TeamService) {
           newCaptain <- req.req.as[Id]
           posTeam    <- TeamRepository.findByOwner(user.id)
           response   <- posTeam match {
-            case Some(teamId) => Ok(teamService.resetCaptain(teamId, newCaptain))
+            case Some(teamId) => Ok(teamService.resetCaptain(teamId, newCaptain)).handleErrorWith(e => BadRequest(e.getMessage))
             case None         => BadRequest("You don't have a team yet")
           }
         } yield response

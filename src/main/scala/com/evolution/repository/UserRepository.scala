@@ -97,8 +97,7 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, Player, 
       .option
       .transact(xa)
 
-   def changeBudget(userId: Id, userBudget: Budget, players: List[Player]): IO[Int] = {
-     val totalPrice = players.foldRight(0.0)((player, price) => player.price.value + price)
+   def changeBudget(userId: Id, userBudget: Budget, totalPrice: Double): IO[Int] = {
      fr"""
         UPDATE
             users

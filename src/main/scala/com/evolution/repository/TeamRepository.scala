@@ -1,19 +1,17 @@
 package com.evolution.repository
 
-import cats.effect.{Deferred, ExitCode, IO, IOApp}
+import cats.data.NonEmptyList
+import cats.effect.IO
 import com.evolution.domain.Role.{Captain, Ordinary}
-import com.evolution.domain.{Club, GameWeek, Id, Name, Player, Points, Price, Role, Statistic, Surname, Team, Transfer}
+import com.evolution.domain.{GameWeek, Id, Name, Player, Points, Role, Statistic, Team, Transfer}
 import doobie.implicits.toSqlInterpolator
 import doobie.implicits._
 import com.evolution.repository.UserRepository.xa
 import doobie.util.update.Update
 import cats.implicits._
 import com.evolution.domain.GamePlace.{Starter, Substituter}
-import com.evolution.domain.Position.Defender
-import com.evolution.domain.Status.Healthy
 import com.evolution.repository.domain.TeamConnection
-import com.evolution.service.TeamService
-
+import doobie._
 
 object TeamRepository {
 
@@ -56,26 +54,26 @@ object TeamRepository {
     Update[(Id, Id, String, String)](teamWithPlayers).updateMany(tableValues).transact(xa)
   }
 
-  def deletePlayer(player: Player, teamId: Id): IO[Int] =
+  def deletePlayer(player: Id, teamId: Id): IO[Int] =
     fr"""
         DELETE FROM
             teams_players
         WHERE
-            player_id = ${player.id.value}
+            player_id = ${player.value}
             AND team_id = ${teamId.value}
       """
       .update
       .run
       .transact(xa)
 
-  def insertPlayer(player: Player, teamId: Id): IO[Int] =
+  def insertPlayer(player: Id, teamId: Id): IO[Int] =
     fr"""
         INSERT INTO
             teams_players (team_id, player_id, player_role, player_place)
         VALUES
             (
                 ${teamId.value},
-                ${player.id.value},
+                ${player.value},
                 ${Ordinary.entryName},
                 ${Starter.entryName}
             )
@@ -84,28 +82,28 @@ object TeamRepository {
       .run
       .transact(xa)
 
-  def setCaptain(player: Player, teamId: Id): IO[Int] =
+  def setCaptain(player: Id, teamId: Id): IO[Int] =
     fr"""
         UPDATE
             teams_players
         SET
             player_role = ${Captain.entryName}
         WHERE
-            player_id = ${player.id.value}
+            player_id = ${player.value}
             AND team_id = ${teamId.value}
       """
       .update
       .run
       .transact(xa)
 
-  def setOrdinary(teamId: Id, player: Player): IO[Int] =
+  def setOrdinary(teamId: Id, player: Id): IO[Int] =
     fr"""
         UPDATE
             teams_players
         SET
             player_role = ${Ordinary.entryName}
         WHERE
-            player_id != ${player.id.value}
+            player_id != ${player.value}
             AND team_id = ${teamId.value}
       """
       .update
@@ -212,7 +210,7 @@ object TeamRepository {
                   stat.redCards,
                   stat.saves,
                   stat.cleanSheet),
-                stat.position ,
+                stat.position,
                 stat.role)).sum),
             teamC.head.freeTransfers,
           )
@@ -331,4 +329,18 @@ object TeamRepository {
       .query[Id]
       .option
       .transact(xa)
+
+  def teamCost(players: NonEmptyList[Id]): IO[Double] = {
+    val q =
+      fr"""
+        SELECT
+            SUM(price)
+        FROM
+            players
+        WHERE
+      """ ++ Fragments.in(fr"id", players.map(id => id.value))
+    q.query[Double]
+      .unique
+      .transact(xa)
+  }
 }

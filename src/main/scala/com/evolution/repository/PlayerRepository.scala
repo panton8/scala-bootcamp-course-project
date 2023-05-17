@@ -22,6 +22,19 @@ object PlayerRepository{
       .toList
       .transact(xa)
 
+  def getAllPlayersId(): IO[List[Id]] =
+    fr"""
+        SELECT
+            id
+        FROM
+            players
+      """
+      .query[Id]
+      .stream
+      .compile
+      .toList
+      .transact(xa)
+
   def playerByNameAndSurname(name: Name, surname: Surname): IO[Option[Player]] =
     fr"""
         SELECT

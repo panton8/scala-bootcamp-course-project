@@ -7,15 +7,14 @@ import com.evolution.domain.errors._
 
 final case class UserService() {
 
-  def registration(userName: Name, email: Email, password: Password):IO[Option[User]] = for {
+  def registration(userName: Name, email: Email, password: Password):IO[Unit] = for {
       possibleName  <- UserRepository.userByName(userName)
       possibleEmail <- UserRepository.userByEmail(email)
-      userId        <- (possibleName, possibleEmail) match {
+      _             <- (possibleName, possibleEmail) match {
         case (None, None) => UserRepository.addUser(userName, email, password)
-        case _            => IO.raiseError(SuchUserAlreadyExist("Such email or userName already exist"))
+        case _            => IO.raiseError(SuchUserAlreadyExist)
       }
-      user          <- UserRepository.userById(Id(userId))
-  } yield  user
+  } yield  ()
 
   def signIn(email: Email, password: Password): IO[Option[User]] =
     UserRepository.getUser(email, password)
@@ -35,9 +34,6 @@ final case class UserService() {
   def findByName(userName: Name): IO[Option[User]] =
     UserRepository.userByName(userName)
     //searchResult(UserRepository.userByName(userName))
-
-  def changeBudget(user: User, players: List[Player]): IO[Int] =
-    UserRepository.changeBudget(user.id, user.budget, players)
 
   def deleteTeamWithPlayers(teamId: Id): IO[Unit] = for {
     _ <- TeamRepository.deleteTeamPlayers(teamId)

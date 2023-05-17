@@ -51,6 +51,8 @@ final case class TeamService() {
   }
 
   def resetCaptain(teamId: Id, newCaptain: Id): IO[Unit] = for {
+    teamPlayers <- TeamRepository.playersFromTeam(teamId).map(players => players.map(player => player.id))
+    - <- if (teamPlayers.contains(newCaptain)) IO.unit else IO.raiseError(InvalidTeamPlayer)
     _ <- TeamRepository.setCaptain(newCaptain, teamId)
     _ <- TeamRepository.setOrdinary(teamId, newCaptain)
   } yield()
@@ -105,7 +107,7 @@ final case class TeamService() {
         _    <- role match {
           case Some(role) =>
             if (role == Captain)
-              resetCaptain(teamId, newPlayer.id)
+              TeamRepository.setCaptain(newPlayer.id, teamId)
             else
               IO.unit
           case None       => IO.unit

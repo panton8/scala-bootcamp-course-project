@@ -7,6 +7,7 @@ import com.evolution.domain.errors.SuchTeamDoesNotExist
 import com.evolution.domain.{GameWeek, Id, Player, User}
 import com.evolution.http.auth.Auth.authMiddleware
 import com.evolution.http.domain.TeamCreation
+import com.evolution.repository.TeamRepository
 import com.evolution.service.TeamService
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec._
@@ -42,16 +43,24 @@ final case class TeamRoutes(teamService: TeamService) {
             Ok(players)
         }
 
-      case req@PUT -> Root / IntVar(id) / "update" / "captain" as user =>
+      case req@PUT -> Root / "update" / "captain" as user =>
         for {
-          newCaptain <- req.req.as[Player]
-          response <- Ok(teamService.resetCaptain(Id(id), newCaptain))
+          newCaptain <- req.req.as[Id]
+          posTeam    <- TeamRepository.findByOwner(user.id)
+          response   <- posTeam match {
+            case Some(teamId) => Ok(teamService.resetCaptain(teamId, newCaptain))
+            case None         => BadRequest("You don't have a team yet")
+          }
         } yield response
 
-      case req@PUT -> Root / IntVar(teamId) / "update" / "line-up" as user =>
+      case req@PUT -> Root / "update" / "line-up" as user =>
         for {
-          players <- req.req.as[List[Player]]
-          response <- Ok(teamService.changePlayer(players(1), players.head, Id(teamId))).handleErrorWith(e => BadRequest(e.getMessage))
+          players <- req.req.as[List[Id]]
+          posTeam    <- TeamRepository.findByOwner(user.id)
+          response  <- posTeam match {
+            case Some(teamId) => Ok (teamService.changePlayer(players(1), players.head, teamId)).handleErrorWith (e => BadRequest (e.getMessage))
+            case None         => BadRequest("You don't have a team yet")
+        }
         } yield response
 
       case req@POST -> Root as user =>

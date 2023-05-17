@@ -40,15 +40,13 @@ final case class UserRoutes(userService: UserService) {
             case Some(user) => Ok(user)
             case None       => BadRequest(SuchUserDoesNotExist.getMessage)
           }
-        }
+        }.handleErrorWith(e => BadRequest(e.getMessage))
 
       case req @ POST -> Root / "register" =>
-        req.decode[UserRegistration] { userReg =>
-          userService.registration(userReg.userName, userReg.email, userReg.password) flatMap {
-            case Some(user) => Created(user)
-            case None       => BadRequest()
-          }
-        }
+        for{
+          userReg  <- req.as[UserRegistration]
+          response <- Created(userService.registration(userReg.userName, userReg.email, userReg.password)).handleErrorWith(e => BadRequest(e.getMessage))
+        } yield response
     }
 
   val routes: HttpRoutes[IO] = loginRoutes <+> authMiddleware(authedRoutes)

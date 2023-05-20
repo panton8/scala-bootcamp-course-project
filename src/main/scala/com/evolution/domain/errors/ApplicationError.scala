@@ -17,6 +17,21 @@ final case object DuplicatePlayers extends ApplicationError("Team can only consi
 final case object DuplicateTeam extends ApplicationError("You can have only one team")
 final case object InvalidTeamPlayer extends ApplicationError("Such player not from your team")
 final case object InvalidChange extends ApplicationError("New player is already in your team")
+final case class  InvalidEmail(msg: String) extends ApplicationError(msg)
+final case class  InvalidPassword(msg: String) extends ApplicationError(msg)
+final case class InvalidUserName(msg: String) extends ApplicationError(msg)
+final case class RegErrors(msg: String) extends ApplicationError(msg){
+  override def getMessage: String = {
+    val updMsg = msg.substring(0, msg.length - 1)
+    val errors = updMsg.substring(5).split(", ").map(error => error.substring(error.indexOf(" ") + 1))
+    errors.mkString(". ")
+  }
+}
+final case class SpecificError(msg: String) extends ApplicationError(msg)
+final case object InvalidAmountOfForwards extends ApplicationError("Amount of forwards must be 3")
+final case object InvalidAmountOfMidfielders extends ApplicationError("Amount of midfielders must be 5")
+final case object InvalidAmountOfDefenders extends ApplicationError("Amount of defenders must be 5")
+final case object InvalidAmountOfGoalkeepers extends ApplicationError("Amount of goalkeepers must be 2")
 
 object AuthenticationError {
   implicit val userRegDecoder: Decoder[AuthenticationError] =

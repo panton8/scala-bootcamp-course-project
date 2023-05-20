@@ -2,18 +2,11 @@ package com.evolution.repository
 
 import cats.effect.IO
 import com.evolution.domain.Access.Base
-import doobie.util.transactor.Transactor
 import doobie.implicits._
-import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, Player, User}
+import utils.DriverTransactor.xa
+import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
 
  object UserRepository {
-
-  val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver",
-    "jdbc:postgresql://localhost:5438/",
-    "postgres",
-    "postgres"
-  )
 
   def listOfUsers(): IO[List[User]] =
     fr"""

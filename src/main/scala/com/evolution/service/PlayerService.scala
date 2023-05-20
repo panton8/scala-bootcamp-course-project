@@ -29,10 +29,10 @@ final case class PlayerService() {
     PlayerRepository.updateStatistics(statistic, playerId, gameWeek)
 
 
-  def takeTotalStatistic(playerId: Id): IO[Statistic] =
+  def takeTotalStatistic(playerId: Id): IO[Option[Statistic]] =
     PlayerRepository.showTotalPlayerStatistics(playerId)
 
-  def takeWeekStatistic(playerId: Id, gameWeek: GameWeek): IO[Statistic] =
+  def takeWeekStatistic(playerId: Id, gameWeek: GameWeek): IO[Option[Statistic]] =
     PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
 
   def getInjured(playerId: Id): IO[Int] =
@@ -44,18 +44,18 @@ final case class PlayerService() {
   def giveTotalPoints(playerId: Id): IO[Int] = for {
     stat   <- PlayerRepository.showTotalPlayerStatistics(playerId)
     player <- PlayerRepository.playerById(playerId)
-    points = player match {
-      case Some(player) => Statistic.countPoints(stat, player.position)
-      case None         => 0
+    points = (player, stat) match {
+      case (Some(player), Some(stat)) => Statistic.countPoints(stat, player.position)
+      case (_, _)                     => 0
     }
   } yield points
 
   def givePointsByWeek(playerId: Id, gameWeek: GameWeek): IO[Int] = for {
     stat <- PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
     player <- PlayerRepository.playerById(playerId)
-    points = player match {
-      case Some(player) => Statistic.countPoints(stat, player.position)
-      case None         => 0
+    points = (player, stat) match {
+      case (Some(player), Some(stat)) => Statistic.countPoints(stat, player.position)
+      case (_, _)                     => 0
     }
   } yield points
 }

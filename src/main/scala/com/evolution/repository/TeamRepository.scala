@@ -3,10 +3,10 @@ package com.evolution.repository
 import cats.data.NonEmptyList
 import cats.effect.IO
 import com.evolution.domain.Role.{Captain, Ordinary}
-import com.evolution.domain.{GameWeek, Id, Name, Player, Points, Role, Statistic, Team, Transfer}
+import com.evolution.domain.{GamePlace, GameWeek, Id, Name, Player, Points, Role, Statistic, Team, Transfer}
 import doobie.implicits.toSqlInterpolator
 import doobie.implicits._
-import com.evolution.repository.UserRepository.xa
+import utils.DriverTransactor.xa
 import doobie.util.update.Update
 import cats.implicits._
 import com.evolution.domain.GamePlace.{Starter, Substituter}
@@ -142,23 +142,6 @@ object TeamRepository {
       .option
       .transact(xa)
 
-  def changeGamePlace(teamId: Id, playerId: Id): IO[Int] =
-    fr"""
-        UPDATE
-            teams_players
-        SET
-            player_place = CASE
-                WHEN game_place = $Starter THEN $Substituter
-                ELSE $Starter
-            END
-        WHERE
-            team_id = ${teamId.value}
-            AND player_id = ${playerId.value}
-      """
-      .update
-      .run
-      .transact(xa)
-
   def teamPoints(teamId: Id, gameWeek: GameWeek): IO[Team] = {
     fr"""
         SELECT
@@ -211,6 +194,7 @@ object TeamRepository {
                   stat.saves,
                   stat.cleanSheet),
                 stat.position,
+                stat.gamePlace,
                 stat.role)).sum),
             teamC.head.freeTransfers,
           )
@@ -245,7 +229,21 @@ object TeamRepository {
       .run
       .transact(xa)
 
-  def playersFromTeam(teamId: Id) =
+  def changeGamePlace(player: Id, team: Id, gamePlace: GamePlace): IO[Int] =
+    fr"""
+        UPDATE
+            teams_players
+        SET
+            player_place = ${gamePlace.entryName}
+        WHERE
+             team_id = ${team.value}
+             AND player_id = ${player.value}
+      """
+      .update
+      .run
+      .transact(xa)
+
+  def playersFromTeam(teamId: Id): IO[List[Player]] =
     fr"""
         SELECT
             p.id AS player_id,
@@ -279,6 +277,20 @@ object TeamRepository {
             AND player_id = ${playerId.value}
       """
       .query[Role]
+      .option
+      .transact(xa)
+
+  def getGamePlace(playerId: Id, teamId: Id): IO[Option[GamePlace]] =
+    fr"""
+        SELECT
+            player_place
+        FROM
+            teams_players
+        WHERE
+            team_id = ${teamId.value}
+            AND player_id = ${playerId.value}
+      """
+      .query[GamePlace]
       .option
       .transact(xa)
 

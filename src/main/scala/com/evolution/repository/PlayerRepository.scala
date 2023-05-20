@@ -1,10 +1,12 @@
 package com.evolution.repository
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import doobie.implicits._
-import UserRepository.xa
+import utils.DriverTransactor.xa
 import com.evolution.domain.Status.{Healthy, Injured}
 import com.evolution.domain.{Club, GameWeek, Id, Name, Player, Position, Price, Statistic, Status, Surname}
+import doobie.Fragments
 import doobie.implicits.toSqlInterpolator
 
 object PlayerRepository{
@@ -178,7 +180,7 @@ object PlayerRepository{
       .transact(xa)
       .option
 
-  def showPlayerStatisticsByWeek(playerId: Id, gameWeek: GameWeek): IO[Statistic] =
+  def showPlayerStatisticsByWeek(playerId: Id, gameWeek: GameWeek): IO[Option[Statistic]] =
     fr"""
         SELECT
             goals,
@@ -196,10 +198,10 @@ object PlayerRepository{
             AND game_week = ${ gameWeek.value }
       """
       .query[Statistic]
-      .unique
+      .option
       .transact(xa)
 
-  def showTotalPlayerStatistics(playerId: Id):IO[Statistic] =
+  def showTotalPlayerStatistics(playerId: Id):IO[Option[Statistic]] =
     fr"""
         SELECT
             SUM(goals),
@@ -216,7 +218,7 @@ object PlayerRepository{
             player_id = ${ playerId.value }
       """
       .query[Statistic]
-      .unique
+      .option
       .transact(xa)
 
   def addPlayer(name: Name, surname: Surname, price: Price, club: Club, position: Position, status: Status): IO[Int] =
@@ -243,4 +245,34 @@ object PlayerRepository{
       """
       .update.withUniqueGeneratedKeys[Int]("id")
       .transact(xa)
+
+
+  def playersPos(players: NonEmptyList[Id]): IO[List[Position]] = {
+    val q =
+      fr"""
+        SELECT
+            pos
+        FROM
+            players
+        WHERE
+      """ ++ Fragments.in(fr"id", players.map(id => id.value))
+    q.query[Position]
+      .stream
+      .compile
+      .toList
+      .transact(xa)
+  }
+
+  def playerPos(player: Id): IO[Option[Position]] =
+      fr"""
+        SELECT
+            pos
+        FROM
+            players
+        WHERE
+            id = ${player.value}
+      """
+        .query[Position]
+        .option
+        .transact(xa)
 }

@@ -4,7 +4,7 @@ import cats.effect._
 import cats.implicits.toTraverseOps
 import com.evolution.domain.Access.{Admin, Base}
 import com.evolution.domain.errors.SuchTeamDoesNotExist
-import com.evolution.domain.{GameWeek, Id, Player, User}
+import com.evolution.domain.{GameWeek, Id, User}
 import com.evolution.http.auth.Auth.authMiddleware
 import com.evolution.http.domain.TeamCreation
 import com.evolution.repository.TeamRepository
@@ -61,6 +61,16 @@ final case class TeamRoutes(teamService: TeamService) {
             case Some(teamId) => Ok (teamService.changePlayer(players(1), players.head, teamId)).handleErrorWith (e => BadRequest (e.getMessage))
             case None         => BadRequest("You don't have a team yet")
         }
+        } yield response
+
+      case req@PUT -> Root / "update" / "substitution" as user =>
+        for {
+          players <- req.req.as[List[Id]]
+          posTeam <- TeamRepository.findByOwner(user.id)
+          response <- posTeam match {
+            case Some(teamId) => Ok(teamService.makeSubstitution(players.head, players(1), teamId)).handleErrorWith(e => BadRequest(e.getMessage))
+            case None => BadRequest("You don't have a team yet")
+          }
         } yield response
 
       case req@POST -> Root as user =>

@@ -23,7 +23,7 @@ final case class UserRoutes(userService: UserService) {
           }.handleErrorWith(e => BadRequest(e.getMessage))
         }
 
-      case GET -> Root  as user =>
+      case GET -> Root as user =>
         userService.showListOfUsers().flatMap(users => Ok(users))
 
       case GET -> Root / IntVar(id) as user =>

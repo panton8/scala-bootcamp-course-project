@@ -2,6 +2,7 @@ package com.evolution.http.routes
 
 import cats.effect._
 import com.evolution.domain.Access.{Admin, Base}
+import com.evolution.domain.errors.SuchPlayerDoesNotExist
 import com.evolution.domain.{Club, GameWeek, Id, Name, Position, Statistic, Surname, User}
 import com.evolution.http.auth.Auth.authMiddleware
 import com.evolution.http.domain.PlayerStatistics
@@ -61,11 +62,17 @@ final case class PlayerRoutes(playerService: PlayerService) {
           case None => NotFound()
         }
 
-      case GET -> Root / "club" / club as user=>
-        playerService.showListOfPlayersByClub(Club.withName(club)).flatMap(players => Ok(players))
+      case GET -> Root / "club" / club as user =>
+        if (Club.values.toList.map(_.entryName).contains(club))
+          playerService.showListOfPlayersByClub(Club.withName(club)).flatMap(players => Ok(players))
+        else
+          BadRequest("Incorrect football club")
 
       case GET -> Root / "position" / position as user =>
-        playerService.showListOfPlayersByPosition(Position.withName(position)).flatMap(players => Ok(players))
+        position match {
+          case "FWD" | "MID" | "DEF" | "GKP" => playerService.showListOfPlayersByPosition(Position.withName(position)).flatMap(players => Ok(players))
+          case _                             => BadRequest("Incorrect player position")
+        }
 
       case GET -> Root / name / surname as user =>
         playerService.findByName(Name(name), Surname(surname)).flatMap {
@@ -74,10 +81,15 @@ final case class PlayerRoutes(playerService: PlayerService) {
         }
 
       case GET -> Root / IntVar(id) / "statistics" / "total" as user =>
-        playerService.takeTotalStatistic(Id(id)).flatMap(statistics => Ok(statistics))
-
+        playerService.takeTotalStatistic(Id(id)).flatMap{
+          case Some(statistics) => Ok(statistics)
+          case None             => BadRequest(SuchPlayerDoesNotExist.getMessage)
+        }
       case GET -> Root / IntVar(id) / "statistics" / "week" / IntVar(week) as user =>
-        playerService.takeWeekStatistic(Id(id), GameWeek(week)).flatMap(statistics => Ok(statistics))
+        playerService.takeWeekStatistic(Id(id), GameWeek(week)).flatMap{
+          case Some(statistics) => Ok(statistics)
+          case None             => BadRequest("Invalid player or week")
+        }
 
       case GET -> Root / IntVar(id) / "points" / "total" as user =>
         playerService.giveTotalPoints(Id(id)).flatMap(points =>

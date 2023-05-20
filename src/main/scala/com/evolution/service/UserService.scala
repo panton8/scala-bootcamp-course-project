@@ -1,23 +1,33 @@
 package com.evolution.service
 
+import cats.data.Validated
 import cats.effect.IO
-import com.evolution.domain.{Email, Id, Name, Password, Player, User}
+import com.evolution.domain.{Email, Id, Name, Password, User}
 import com.evolution.repository._
-import com.evolution.domain.errors._
+import com.evolution.domain.errors.{RegErrors, SpecificError, SuchUserAlreadyExist, SuchUserDoesNotExist}
+import com.evolution.service.domain.RegistrationValidator
+import com.roundeights.hasher.Implicits._
+
+import scala.language.postfixOps
 
 final case class UserService() {
 
-  def registration(userName: Name, email: Email, password: Password):IO[Unit] = for {
+  def registration(userName: Name, email: Email, password: Password): IO[Unit] = for {
+      validation   <- RegistrationValidator.validate(userName.value, email.value, password.value)
+      _            <- validation match {
+        case Validated.Valid(entity) => IO(entity)
+        case Validated.Invalid(errors) => IO.raiseError(RegErrors(errors.toString))
+      }
       possibleName  <- UserRepository.userByName(userName)
       possibleEmail <- UserRepository.userByEmail(email)
       _             <- (possibleName, possibleEmail) match {
-        case (None, None) => UserRepository.addUser(userName, email, password)
+        case (None, None) => UserRepository.addUser(userName, email, Password(password.value.md5.hex))
         case _            => IO.raiseError(SuchUserAlreadyExist)
       }
-  } yield  ()
+  } yield()
 
   def signIn(email: Email, password: Password): IO[Option[User]] =
-    UserRepository.getUser(email, password)
+    UserRepository.getUser(email, Password(password.value.md5.hex))
     //searchResult(UserRepository.getUser(email, password))
 
   def showListOfUsers(): IO[List[User]] =
@@ -41,6 +51,10 @@ final case class UserService() {
   } yield ()
 
   def deleteUser(email: Email): IO[Unit] = for {
+    _    <- if (email.value == "fpladmin@gmail.com")
+              IO.raiseError(SpecificError("It's impossible to delete admin account "))
+            else
+              IO.unit
     user <- UserRepository.userByEmail(email)
     teamId <- user match {
       case Some(user) => TeamRepository.findByOwner(user.id)

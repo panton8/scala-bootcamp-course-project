@@ -28,11 +28,10 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-core" % Http4sVersion,
   "org.http4s" %% "http4s-dsl" % Http4sVersion,
   "io.circe" %% "circe-generic" % CirceVersion,
-  "org.reactormonk" %% "cryptobits" % "1.3",
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic"  % circeVersion,
   "io.circe" %% "circe-parser"  % circeVersion,
   "org.slf4j" % "slf4j-api" % "1.7.5",
   "org.slf4j" % "slf4j-simple" % "1.7.5",
-  "org.reactormonk" %% "cryptobits" % "1.3"
+  "com.outr" %% "hasher" % "1.2.2"
 )

@@ -1,5 +1,6 @@
 package com.evolution.domain
 
+import com.evolution.domain.GamePlace.Starter
 import com.evolution.domain.Role.{Captain, Ordinary}
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder, Json}
@@ -43,7 +44,7 @@ object Statistic {
     )
   }
 
-  def countPoints(statistic: Statistic, position: Position, role: Role = Ordinary) = {
+  def countPoints(statistic: Statistic, position: Position, gamePlace: GamePlace = Starter ,role: Role = Ordinary): Int = {
     val points = Goal.points(statistic.goals, position).value +
       Assist.points(statistic.assists, position).value +
       Minutes.points(statistic.minutes, position).value +
@@ -52,6 +53,6 @@ object Statistic {
       CleanSheet.points(statistic.cleanSheet, position).value +
       OwnGoal.points(statistic.ownGoals, position).value +
       Saves.points(statistic.saves, position).value
-    if (role == Captain) points * 2 else points
+    if (role == Captain) points * 2 else if (gamePlace == Starter) points else 0
   }
 }

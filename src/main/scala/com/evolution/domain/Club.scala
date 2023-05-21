@@ -1,5 +1,6 @@
 package com.evolution.domain
 import enumeratum._
+
 sealed trait Club extends EnumEntry
 
 final case object Club extends Enum[Club] with DoobieEnum[Club] {

@@ -1,5 +1,6 @@
 package com.evolution.domain
 import enumeratum._
+import io.circe.{Decoder, Encoder}
 
 sealed abstract class Position(override val entryName: String) extends EnumEntry
 
@@ -11,5 +12,4 @@ final case object Position extends Enum[Position] with DoobieEnum[Position] {
   final case object Goalkeeper extends Position("GKP")
 
   val values = findValues
-
 }

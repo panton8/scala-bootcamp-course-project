@@ -2,18 +2,11 @@ package com.evolution.repository
 
 import cats.effect.IO
 import com.evolution.domain.Access.Base
-import doobie.util.transactor.Transactor
 import doobie.implicits._
-import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, Player, User}
+import utils.DriverTransactor.xa
+import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
 
  object UserRepository {
-
-  val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver",
-    "jdbc:postgresql://localhost:5438/",
-    "postgres",
-    "postgres"
-  )
 
   def listOfUsers(): IO[List[User]] =
     fr"""
@@ -97,8 +90,7 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, Player, 
       .option
       .transact(xa)
 
-   def changeBudget(userId: Id, userBudget: Budget, players: List[Player]): IO[Int] = {
-     val totalPrice = players.foldRight(0.0)((player, price) => player.price.value + price)
+   def changeBudget(userId: Id, userBudget: Budget, totalPrice: Double): IO[Int] = {
      fr"""
         UPDATE
             users
@@ -120,6 +112,17 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, Player, 
             budget = ${ userBudget.value - diff.value }
         WHERE
             id = ${ userId.value }
+      """
+       .update
+       .run
+       .transact(xa)
+
+   def banUser(email: Email): IO[Int] =
+     fr"""
+        DELETE FROM
+            users
+        WHERE
+            email = ${email.value}
       """
        .update
        .run

@@ -1,6 +1,7 @@
 package com.evolution.service
 
 import cats.effect.IO
+import com.evolution.domain.errors.SuchPlayerDoesNotExist
 import com.evolution.domain.{Club, GameWeek, Id, Name, Player, Position, Statistic, Surname}
 import com.evolution.repository._
 
@@ -24,29 +25,37 @@ final case class PlayerService() {
   def findById(id: Id): IO[Option[Player]] =
     PlayerRepository.playerById(id)
 
-  def addMatchActions(player: Player, statistic: Statistic): IO[Option[Int]] =
-    PlayerRepository.updateStatistics(statistic, player.id)
+  def addMatchActions(playerId: Id, statistic: Statistic, gameWeek: GameWeek): IO[Option[Int]] =
+    PlayerRepository.updateStatistics(statistic, playerId, gameWeek)
 
 
-  def takeTotalStatistic(player: Player): IO[Statistic] =
-    PlayerRepository.showTotalPlayerStatistics(player.id)
+  def takeTotalStatistic(playerId: Id): IO[Option[Statistic]] =
+    PlayerRepository.showTotalPlayerStatistics(playerId)
 
-  def takeWeekStatistic(player: Player, gameWeek: GameWeek): IO[Statistic] =
-    PlayerRepository.showPlayerStatisticsByWeek(player.id, gameWeek)
+  def takeWeekStatistic(playerId: Id, gameWeek: GameWeek): IO[Option[Statistic]] =
+    PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
 
-  def getInjured(player: Player): IO[Int] =
-    PlayerRepository.getInjured(player.id)
+  def getInjured(playerId: Id): IO[Int] =
+    PlayerRepository.getInjured(playerId)
 
-  def getRecovered(player: Player): IO[Int] =
-    PlayerRepository.getRecovered(player.id)
+  def getRecovered(playerId: Id): IO[Int] =
+    PlayerRepository.getRecovered(playerId)
 
-  def giveTotalPoints(player: Player): IO[Int] = for {
-    stat <- PlayerRepository.showTotalPlayerStatistics(player.id)
-    points = Statistic.countPoints(stat)
+  def giveTotalPoints(playerId: Id): IO[Int] = for {
+    stat   <- PlayerRepository.showTotalPlayerStatistics(playerId)
+    player <- PlayerRepository.playerById(playerId)
+    points = (player, stat) match {
+      case (Some(player), Some(stat)) => Statistic.countPoints(stat, player.position)
+      case (_, _)                     => 0
+    }
   } yield points
 
-  def givePointsByWeek(player: Player, gameWeek: GameWeek): IO[Int] = for {
-    stat <- PlayerRepository.showPlayerStatisticsByWeek(player.id, gameWeek)
-    point = Statistic.countPoints(stat, player.status)
-  } yield point
+  def givePointsByWeek(playerId: Id, gameWeek: GameWeek): IO[Int] = for {
+    stat <- PlayerRepository.showPlayerStatisticsByWeek(playerId, gameWeek)
+    player <- PlayerRepository.playerById(playerId)
+    points = (player, stat) match {
+      case (Some(player), Some(stat)) => Statistic.countPoints(stat, player.position)
+      case (_, _)                     => 0
+    }
+  } yield points
 }

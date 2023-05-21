@@ -2,10 +2,10 @@ package com.evolution.domain
 
 import com.evolution.domain.GamePlace.Starter
 import com.evolution.domain.Role.{Captain, Ordinary}
-import com.evolution.domain.Status.{Healthy, Injured}
-import doobie.util.{Read, Write}
+import io.circe.syntax.EncoderOps
+import io.circe.{Decoder, Encoder, Json}
+
 final case class Statistic(
-  gameWeek: GameWeek,
   goals:Int,
   assists: Int,
   minutes: Int,
@@ -17,16 +17,42 @@ final case class Statistic(
 )
 
 object Statistic {
-  def countPoints(statistic: Statistic, healthStatus: Status = Healthy, gamePlace: GamePlace = Starter, role: Role = Ordinary) = {
-    val points = Goal.points(statistic.goals).value +
-      Assist.points(statistic.assists).value +
-      Minutes.points(statistic.minutes).value +
-      YellowCard.points(statistic.yellowCard).value +
-      RedCard.points(statistic.redCard).value +
-      CleanSheet.points(statistic.cleanSheet).value +
-      OwnGoal.points(statistic.ownGoals).value +
-      Saves.points(statistic.saves).value
-    if (healthStatus == Injured) 0 else if (role == Captain && gamePlace == Starter) points * 2 else points
 
+  implicit val jsonDecoder: Decoder[Statistic] = cursor =>
+    for {
+      goals      <- cursor.get[Int]("goals")
+      assists    <- cursor.get[Int]("assists")
+      minutes    <- cursor.get[Int]("minutes")
+      ownGoals   <- cursor.get[Int]("ownGoals")
+      yellowCard <- cursor.get[Int]("yellowCards")
+      redCard    <- cursor.get[Int]("redCards")
+      saves      <- cursor.get[Int]("saves")
+      cleanSheet <- cursor.get[Int]("cleanSheets")
+
+    } yield Statistic(goals, assists, minutes, ownGoals, yellowCard, redCard, saves, cleanSheet)
+
+  implicit val jsonEncoder: Encoder[Statistic] = Encoder.instance {
+    case Statistic(goals, assists, minutes, ownGoals, yellowCard, redCard, saves, cleanSheet) => Json.obj(
+      "goals" -> goals.asJson,
+      "assists"      -> assists.asJson,
+      "minutes"      -> minutes.asJson,
+      "ownGoals"     -> ownGoals.asJson,
+      "yellowCards"  -> yellowCard.asJson,
+      "redCards"     -> redCard.asJson,
+      "saves"        -> saves.asJson,
+      "cleanSheets"  -> cleanSheet.asJson
+    )
+  }
+
+  def countPoints(statistic: Statistic, position: Position, gamePlace: GamePlace = Starter ,role: Role = Ordinary): Int = {
+    val points = Goal.points(statistic.goals, position).value +
+      Assist.points(statistic.assists, position).value +
+      Minutes.points(statistic.minutes, position).value +
+      YellowCard.points(statistic.yellowCard, position).value +
+      RedCard.points(statistic.redCard, position).value +
+      CleanSheet.points(statistic.cleanSheet, position).value +
+      OwnGoal.points(statistic.ownGoals, position).value +
+      Saves.points(statistic.saves, position).value
+    if (role == Captain) points * 2 else if (gamePlace == Starter) points else 0
   }
 }

@@ -45,8 +45,8 @@ object Minutes extends GameAction {
 
 object CleanSheet extends GameAction {
   override val points = (amount: Int, position: Position) => position match {
-    case Forward               => Points(0)
-    case Midfielder            => Points(1)
-    case Defender | Goalkeeper => Points(4)
+    case Forward               => Points(0 * amount)
+    case Midfielder            => Points(1 * amount)
+    case Defender | Goalkeeper => Points(4 * amount)
   }
 }

@@ -95,7 +95,7 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
         UPDATE
             users
         Set
-            budget = ${ userBudget.value - totalPrice }
+            budget = ${"%.1f".format(userBudget.value - totalPrice).replace(",", ".").toDouble }
         WHERE
             id = ${ userId.value }
       """

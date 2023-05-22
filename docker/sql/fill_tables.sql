@@ -6,7 +6,7 @@ INSERT INTO users (id,user_name, email, password, role, budget)
 VALUES (2, 'panton8', 'anton@gmail.com', 'a83a26d4887950da95a6236c67fcc220', 'Base', 100.0);
 
 INSERT INTO users (id,user_name, email, password, role, budget)
-VALUES (3, 'pdima11', 'dima@mail.ru', '6019b92a53a2c5ae417442a5bfb0ff81', 'Base', 100.0);
+VALUES (3, 'andrew', 'andrew@mail.ru', 'd914e3ecf6cc481114a3f534a5faf90b', 'Base', 100.0);
 
 -- Players
 

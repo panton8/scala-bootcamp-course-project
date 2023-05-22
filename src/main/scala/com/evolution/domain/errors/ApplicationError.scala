@@ -9,6 +9,7 @@ final case object SuchUserDoesNotExist extends ApplicationError("Such user doesn
 final case object SuchTeamDoesNotExist extends ApplicationError("Such team doesn't exist")
 final case object SuchPlayerDoesNotExist extends ApplicationError("Such player doesn't exist")
 final case object PriseMoreThanBudget extends ApplicationError("Players prise more than your budget")
+final case object InvalidTransfer extends ApplicationError("Not enough budget for the transfer")
 final case object NonAvailableTransfer extends ApplicationError("No available transfers")
 final case class AuthenticationError(msg: String) extends ApplicationError(msg)
 final case object NotEnoughPlayers extends ApplicationError("Not enough players in your team")

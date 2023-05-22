@@ -7,7 +7,7 @@ import com.evolution.domain.errors.SuchTeamDoesNotExist
 import com.evolution.domain.{GameWeek, Id, User}
 import com.evolution.http.auth.Auth.authMiddleware
 import com.evolution.http.domain.TeamCreation
-import com.evolution.repository.TeamRepository
+import com.evolution.repository.{TeamRepository, UserRepository}
 import com.evolution.service.TeamService
 import org.http4s._
 import org.http4s.circe.CirceEntityCodec._
@@ -33,6 +33,12 @@ final case class TeamRoutes(teamService: TeamService) {
         teamService.findById(Id(id)) flatMap {
           case Some(team) => Ok(team)
           case None => NotFound()
+        }
+
+      case GET -> Root / "line-up" as user =>
+        teamService.teamByOwner(user.id) flatMap {
+          case Some(teamId) => teamService.playersFromTeam(teamId).flatMap(Ok(_))
+          case None       => BadRequest("You don't have a team yet")
         }
 
       case GET -> Root / IntVar(id) / "line-up" as user =>

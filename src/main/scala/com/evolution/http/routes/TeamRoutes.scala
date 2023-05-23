@@ -21,7 +21,7 @@ final case class TeamRoutes(teamService: TeamService) {
         user.access match {
           case Base  => IO(Response(Forbidden))
           case Admin =>
-            val teams = teamService.showListOfTeams()
+            val teams  = teamService.showListOfTeams()
             val update = teams.flatMap(teams => teams.traverse(team => teamService.updateTeamStat(team, GameWeek(currentWeek))))
             update.flatMap(_ => Ok())
         }
@@ -61,9 +61,9 @@ final case class TeamRoutes(teamService: TeamService) {
 
       case req@PUT -> Root / "update" / "line-up" as user =>
         for {
-          players <- req.req.as[List[Id]]
-          posTeam    <- TeamRepository.findByOwner(user.id)
-          response  <- posTeam match {
+          players  <- req.req.as[List[Id]]
+          posTeam  <- TeamRepository.findByOwner(user.id)
+          response <- posTeam match {
             case Some(teamId) => Ok (teamService.changePlayer(players(1), players.head, teamId)).handleErrorWith (e => BadRequest (e.getMessage))
             case None         => BadRequest("You don't have a team yet")
         }
@@ -71,11 +71,11 @@ final case class TeamRoutes(teamService: TeamService) {
 
       case req@PUT -> Root / "update" / "substitution" as user =>
         for {
-          players <- req.req.as[List[Id]]
-          posTeam <- TeamRepository.findByOwner(user.id)
+          players  <- req.req.as[List[Id]]
+          posTeam  <- TeamRepository.findByOwner(user.id)
           response <- posTeam match {
             case Some(teamId) => Ok(teamService.makeSubstitution(players.head, players(1), teamId)).handleErrorWith(e => BadRequest(e.getMessage))
-            case None => BadRequest("You don't have a team yet")
+            case None         => BadRequest("You don't have a team yet")
           }
         } yield response
 

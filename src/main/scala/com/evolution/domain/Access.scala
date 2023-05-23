@@ -10,4 +10,3 @@ final case object Access extends Enum[Access] with DoobieEnum[Access] {
 
   val values = findValues
 }
-

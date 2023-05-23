@@ -1,7 +1,7 @@
 package com.evolution.service
 
 import cats.data.NonEmptyList
-import cats.effect.{Deferred, IO}
+import cats.effect.IO
 import com.evolution.domain.GamePlace.{Starter, Substituter}
 import com.evolution.domain.Position.{Defender, Forward, Goalkeeper, Midfielder}
 import com.evolution.domain.Role.Captain
@@ -20,11 +20,11 @@ final case class TeamService() {
   }
   private def playersPosCheck(players: List[Id]): IO[Unit] = for {
     positions <- PlayerRepository.playersPos(NonEmptyList.fromList(players).get)
-    _ <- if (positions.filter(pos => pos == Goalkeeper).length != 2) IO.raiseError(InvalidAmountOfGoalkeepers)
-         else if (positions.filter(pos => pos == Defender).length != 5) IO.raiseError(InvalidAmountOfDefenders)
-         else if (positions.filter(pos => pos == Midfielder).length != 5) IO.raiseError(InvalidAmountOfMidfielders)
-         else if (positions.filter(pos => pos == Forward).length != 3) IO.raiseError(InvalidAmountOfForwards)
-         else IO.unit
+    _         <- if (positions.filter(pos => pos == Goalkeeper).length != 2) IO.raiseError(InvalidAmountOfGoalkeepers)
+                 else if (positions.filter(pos => pos == Defender).length != 5) IO.raiseError(InvalidAmountOfDefenders)
+                 else if (positions.filter(pos => pos == Midfielder).length != 5) IO.raiseError(InvalidAmountOfMidfielders)
+                 else if (positions.filter(pos => pos == Forward).length != 3) IO.raiseError(InvalidAmountOfForwards)
+                 else IO.unit
   } yield ()
 
   def createTeam(name: Name, userId: Id, players: List[Id], captain: Id): IO[Unit] = {
@@ -39,37 +39,37 @@ final case class TeamService() {
         teamExist  <- TeamRepository.findByOwner(userId)
         _          <- teamExist match {
           case Some(_) => IO.raiseError(DuplicateTeam)
-          case None        => IO.unit
+          case None    => IO.unit
         }
-        _         <- playersPosCheck(players)
+        _          <- playersPosCheck(players)
         allPlayers <- PlayerRepository.listOfPlayers().map(players => players.map(player => player.id))
         _          <- if (players.forall(allPlayers.contains)) IO.unit else IO.raiseError(SuchPlayerDoesNotExist)
         totalPrice <- TeamRepository.teamCost(NonEmptyList.fromList(players).get)
-        _ <- totalPrice match {
+        _          <- totalPrice match {
           case value if value > 100 => IO.raiseError(PriseMoreThanBudget)
-          case _ => IO.unit
+          case _                    => IO.unit
         }
-        teamId <- TeamRepository.createTeam(name, userId)
-        _      <- TeamRepository.addPlayers(players, Id(teamId))
-        _      <- TeamRepository.setCaptain(captain, Id(teamId))
-        user <- UserRepository.userById(userId)
-        _ <- user match {
+        teamId     <- TeamRepository.createTeam(name, userId)
+        _          <- TeamRepository.addPlayers(players, Id(teamId))
+        _          <- TeamRepository.setCaptain(captain, Id(teamId))
+        user       <- UserRepository.userById(userId)
+        _          <- user match {
           case Some(user) => UserRepository.changeBudget(userId, user.budget, totalPrice)
-          case None => IO.raiseError(SuchUserDoesNotExist)
+          case None       => IO.raiseError(SuchUserDoesNotExist)
         }
-        _ <- TeamRepository.changeGamePlace(players(11), Id(teamId), Substituter)
-        _ <- TeamRepository.changeGamePlace(players(12), Id(teamId), Substituter)
-        _ <- TeamRepository.changeGamePlace(players(13), Id(teamId), Substituter)
-        _ <- TeamRepository.changeGamePlace(players(14), Id(teamId), Substituter)
+        _          <- TeamRepository.changeGamePlace(players(11), Id(teamId), Substituter)
+        _          <- TeamRepository.changeGamePlace(players(12), Id(teamId), Substituter)
+        _          <- TeamRepository.changeGamePlace(players(13), Id(teamId), Substituter)
+        _          <- TeamRepository.changeGamePlace(players(14), Id(teamId), Substituter)
       } yield ()
     }
   }
 
   def resetCaptain(teamId: Id, newCaptain: Id): IO[Unit] = for {
     teamPlayers <- TeamRepository.playersFromTeam(teamId).map(players => players.map(player => player.id))
-    - <- if (teamPlayers.contains(newCaptain)) IO.unit else IO.raiseError(InvalidTeamPlayer)
-    _ <- TeamRepository.setCaptain(newCaptain, teamId)
-    _ <- TeamRepository.setOrdinary(teamId, newCaptain)
+    _           <- if (teamPlayers.contains(newCaptain)) IO.unit else IO.raiseError(InvalidTeamPlayer)
+    _           <- TeamRepository.setCaptain(newCaptain, teamId)
+    _           <- TeamRepository.setOrdinary(teamId, newCaptain)
   } yield()
 
   def findById(id: Id): IO[Option[Team]] =
@@ -81,18 +81,18 @@ final case class TeamService() {
   def changePlayer(newPlayer: Id, subPlayer: Id, teamId: Id): IO[Unit] = {
       for {
         teamPlayers <- TeamRepository.playersFromTeam(teamId).map(players => players.map(player => player.id))
-        -           <- if (teamPlayers.contains(subPlayer)) IO.unit else IO.raiseError(InvalidTeamPlayer)
-        allPlayers <- PlayerRepository.listOfPlayers().map(players => players.map(player => player.id))
-        _          <- if (allPlayers.contains(newPlayer)) IO.unit else IO.raiseError(SuchPlayerDoesNotExist)
-        _          <- if (teamPlayers.contains(newPlayer)) IO.raiseError(InvalidChange) else IO.unit
-        newPos     <- PlayerRepository.playerPos(newPlayer)
-        subPos     <- PlayerRepository.playerPos(subPlayer)
-        _          <- (newPos, subPos) match {
+        _           <- if (teamPlayers.contains(subPlayer)) IO.unit else IO.raiseError(InvalidTeamPlayer)
+        allPlayers  <- PlayerRepository.listOfPlayers().map(players => players.map(player => player.id))
+        _           <- if (allPlayers.contains(newPlayer)) IO.unit else IO.raiseError(SuchPlayerDoesNotExist)
+        _           <- if (teamPlayers.contains(newPlayer)) IO.raiseError(InvalidChange) else IO.unit
+        newPos      <- PlayerRepository.playerPos(newPlayer)
+        subPos      <- PlayerRepository.playerPos(subPlayer)
+        _           <- (newPos, subPos) match {
           case (Some(newPos), Some(subPos)) => if (newPos == subPos) IO.unit else IO.raiseError(SpecificError("You need to choose player with the same position"))
           case (_, _)                       => IO.raiseError(SuchPlayerDoesNotExist)
         }
-        posUserId <- TeamRepository.teamOwner(teamId)
-        posUser <- posUserId match {
+        posUserId   <- TeamRepository.teamOwner(teamId)
+        posUser     <- posUserId match {
           case Some(id) => UserRepository.userById(id)
           case None     => IO.raiseError(SuchTeamDoesNotExist)
         }
@@ -102,30 +102,30 @@ final case class TeamService() {
           case Some(player) => IO.pure(player)
           case None         => IO.raiseError(SuchPlayerDoesNotExist)
         }
-        subPlayer <- posSubPlayer match {
+        subPlayer    <- posSubPlayer match {
           case Some(player) => IO.pure(player)
           case None         => IO.raiseError(SuchPlayerDoesNotExist)
         }
-        user  <- posUser match {
+        user         <- posUser match {
           case Some(user) =>
             if (user.budget.value - (newPlayer.price.value - subPlayer.price.value) < 0)
               IO.raiseError(InvalidTransfer)
             else IO.pure(user)
           case None       => IO.raiseError(SuchUserDoesNotExist)
         }
-        posTeam <- TeamRepository.teamById(teamId)
-        team <- posTeam match {
+        posTeam     <- TeamRepository.teamById(teamId)
+        team        <- posTeam match {
           case Some(team) =>
             if (team.freeTransfers.value == 0)
               IO.raiseError(NonAvailableTransfer)
             else
               IO.pure(team)
-          case None => IO.raiseError(SuchTeamDoesNotExist)
+          case None       => IO.raiseError(SuchTeamDoesNotExist)
         }
-        role <- TeamRepository.getRole(subPlayer.id, team.id)
-        _ <- TeamRepository.deletePlayer(subPlayer.id, team.id)
-        _ <- TeamRepository.insertPlayer(newPlayer.id, team.id)
-        _    <- role match {
+        role        <- TeamRepository.getRole(subPlayer.id, team.id)
+        _           <- TeamRepository.deletePlayer(subPlayer.id, team.id)
+        _           <- TeamRepository.insertPlayer(newPlayer.id, team.id)
+        _           <- role match {
           case Some(role) =>
             if (role == Captain)
               TeamRepository.setCaptain(newPlayer.id, teamId)
@@ -133,8 +133,8 @@ final case class TeamService() {
               IO.unit
           case None       => IO.unit
         }
-        _ <- UserRepository.updateBudget(user.id, user.budget, Budget("%.1f".format(newPlayer.price.value - subPlayer.price.value).replace(",", ".").toDouble))
-        _ <- TeamRepository.makeTransfer(team.id, team.freeTransfers)
+        _          <- UserRepository.updateBudget(user.id, user.budget, Budget("%.1f".format(newPlayer.price.value - subPlayer.price.value).replace(",", ".").toDouble))
+        _          <- TeamRepository.makeTransfer(team.id, team.freeTransfers)
       } yield ()
     }
 
@@ -150,11 +150,11 @@ final case class TeamService() {
     subRole     <- TeamRepository.getGamePlace(subPlayer, team)
     _           <- newRole match {
       case Some(role) => if (role == Substituter) IO.unit else IO.raiseError(SpecificError("New player already is starter"))
-      case None        => IO.raiseError(SpecificError("Invalid players"))
+      case None       => IO.raiseError(SpecificError("Invalid players"))
     }
     _           <- subRole match {
       case Some(role) => if (role == Starter) IO.unit else IO.raiseError(SpecificError("Sub player already is substituter"))
-      case None => IO.raiseError(SpecificError("Invalid players"))
+      case None       => IO.raiseError(SpecificError("Invalid players"))
     }
     subRole     <- TeamRepository.getRole(subPlayer, team)
     -           <- subRole match {

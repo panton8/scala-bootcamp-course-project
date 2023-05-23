@@ -7,6 +7,7 @@ import io.circe.{Decoder, Encoder, Json}
 final case class TeamCreation(name: Name, players: List[Id], captain: Id)
 
 object TeamCreation {
+
   implicit val jsonDecoder: Decoder[TeamCreation] = cursor =>
   for {
     name    <- cursor.get[String]("name")

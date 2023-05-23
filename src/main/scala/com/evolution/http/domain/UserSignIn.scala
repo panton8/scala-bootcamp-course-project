@@ -10,14 +10,14 @@ object UserSignIn {
 
   implicit val jsonDecoder: Decoder[UserSignIn] = cursor =>
     for {
-      email <- cursor.get[String]("email")
+      email    <- cursor.get[String]("email")
       password <- cursor.get[String]("password")
     } yield UserSignIn(Email(email), Password(password))
 
   implicit val jsonEncoder: Encoder[UserSignIn] = Encoder.instance {
     case UserSignIn(email, password) => Json.obj(
       "email" -> email.value.asJson,
-      "password" -> password.value.asJson
+      "password"     -> password.value.asJson
     )
   }
 }

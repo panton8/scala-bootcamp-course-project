@@ -46,7 +46,7 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
         FROM
             users
         WHERE
-            email = ${ email.value }
+            email = ${email.value}
       """
       .query[User]
       .option
@@ -59,7 +59,7 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
          FROM
              users
          WHERE
-             id = ${ id.value }
+             id = ${id.value}
        """
        .query[User]
        .option
@@ -70,7 +70,7 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
         INSERT INTO
             users (user_name, email, password, role, budget)
         VALUES
-            (${ userName.value }, ${ email.value }, ${ password.value }, $access, ${ 100 })
+            (${userName.value}, ${email.value}, ${password.value}, $access, ${100})
       """
       .update
       .withUniqueGeneratedKeys[Int]("id")
@@ -83,8 +83,8 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
         FROM
             users
         WHERE
-            email = ${ email.value }
-            AND password = ${ password.value }
+            email = ${email.value}
+            AND password = ${password.value}
       """
       .query[User]
       .option
@@ -95,9 +95,9 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
         UPDATE
             users
         Set
-            budget = ${"%.1f".format(userBudget.value - totalPrice).replace(",", ".").toDouble }
+            budget = ${"%.1f".format(userBudget.value - totalPrice).replace(",", ".").toDouble}
         WHERE
-            id = ${ userId.value }
+            id = ${userId.value}
       """
        .update
        .run
@@ -109,9 +109,9 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
         UPDATE
             users
         Set
-            budget = ${ userBudget.value - diff.value }
+            budget = ${userBudget.value - diff.value}
         WHERE
-            id = ${ userId.value }
+            id = ${userId.value}
       """
        .update
        .run
@@ -128,4 +128,3 @@ import com.evolution.domain.{Access, Budget, Email, Id, Name, Password, User}
        .run
        .transact(xa)
 }
-

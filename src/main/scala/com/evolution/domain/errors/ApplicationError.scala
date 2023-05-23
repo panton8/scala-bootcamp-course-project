@@ -35,6 +35,7 @@ final case object InvalidAmountOfDefenders extends ApplicationError("Amount of d
 final case object InvalidAmountOfGoalkeepers extends ApplicationError("Amount of goalkeepers must be 2")
 
 object AuthenticationError {
+
   implicit val userRegDecoder: Decoder[AuthenticationError] =
     Decoder.forProduct1("error")(AuthenticationError.apply)
 

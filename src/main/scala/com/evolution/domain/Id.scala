@@ -6,6 +6,7 @@ import io.circe.{Decoder, Encoder, Json}
 final case class Id(value: Int) extends AnyVal
 
 object Id {
+
   implicit val jsonDecoder: Decoder[Id] = cursor =>
     for {
       id <- cursor.get[Int]("id")

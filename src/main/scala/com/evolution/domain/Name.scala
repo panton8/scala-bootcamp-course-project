@@ -4,7 +4,6 @@ import cats.data.{Validated, ValidatedNec}
 import cats.implicits.catsSyntaxApply
 import com.evolution.domain.errors.{ApplicationError, InvalidUserName}
 
-
 final case class Name(value: String) extends AnyVal
 
 object Name {

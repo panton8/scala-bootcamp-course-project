@@ -32,7 +32,7 @@ final case class PlayerRoutes(playerService: PlayerService) {
           case Base  => IO(Response(Forbidden))
           case Admin => for {
             playerStat <- req.req.as[PlayerStatistics]
-            plStat <- playerService.addMatchActions(
+            plStat     <- playerService.addMatchActions(
               playerStat.playerId,
               Statistic(
                 playerStat.goals,
@@ -59,7 +59,7 @@ final case class PlayerRoutes(playerService: PlayerService) {
       case GET -> Root / IntVar(id) as user =>
         playerService.findById(Id(id)) flatMap {
           case Some(player) => Ok(player)
-          case None => NotFound()
+          case None         => NotFound()
         }
 
       case GET -> Root / "club" / club as user =>
@@ -77,7 +77,7 @@ final case class PlayerRoutes(playerService: PlayerService) {
       case GET -> Root / name / surname as user =>
         playerService.findByName(Name(name), Surname(surname)).flatMap {
           case Some(player) => Ok(player)
-          case None => BadRequest("No such player")
+          case None         => BadRequest("No such player")
         }
 
       case GET -> Root / IntVar(id) / "statistics" / "total" as user =>
@@ -85,6 +85,7 @@ final case class PlayerRoutes(playerService: PlayerService) {
           case Some(statistics) => Ok(statistics)
           case None             => BadRequest(SuchPlayerDoesNotExist.getMessage)
         }
+
       case GET -> Root / IntVar(id) / "statistics" / "week" / IntVar(week) as user =>
         playerService.takeWeekStatistic(Id(id), GameWeek(week)).flatMap{
           case Some(statistics) => Ok(statistics)

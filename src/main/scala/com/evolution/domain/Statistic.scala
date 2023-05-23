@@ -28,7 +28,6 @@ object Statistic {
       redCard    <- cursor.get[Int]("redCards")
       saves      <- cursor.get[Int]("saves")
       cleanSheet <- cursor.get[Int]("cleanSheets")
-
     } yield Statistic(goals, assists, minutes, ownGoals, yellowCard, redCard, saves, cleanSheet)
 
   implicit val jsonEncoder: Encoder[Statistic] = Encoder.instance {

@@ -8,6 +8,7 @@ import com.evolution.domain.{Email, Name, Password}
 import com.evolution.http.domain.UserRegistration
 
 object RegistrationValidator {
+
   def validate(userName: String, email: String, password: String): IO[ValidatedNec[ApplicationError, UserRegistration]] = {
     IO.pure((Name.fromString(userName),
       Email.fromString(email),

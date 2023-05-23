@@ -1,12 +1,11 @@
-package com.evolution.http
+package com.evolution
 
 import cats.effect.{ExitCode, IO, IOApp}
-import org.http4s.server.Router
-import org.http4s.implicits._
 import com.evolution.http.routes.{PlayerRoutes, TeamRoutes, UserRoutes}
 import com.evolution.service.{PlayerService, TeamService, UserService}
 import org.http4s.ember.server.EmberServerBuilder
-
+import org.http4s.implicits._
+import org.http4s.server.Router
 
 object AppServer extends IOApp {
 

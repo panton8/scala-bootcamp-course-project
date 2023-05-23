@@ -44,8 +44,8 @@ object PlayerRepository{
         FROM
             players
         WHERE
-            name = ${ name.value }
-            AND surname = ${ surname.value }
+            name = ${name.value}
+            AND surname = ${surname.value}
       """
       .query[Player]
       .option
@@ -58,7 +58,7 @@ object PlayerRepository{
         FROM
             players
         WHERE
-            id = ${  id.value  }
+            id = ${id.value}
       """
       .query[Player]
       .option
@@ -101,7 +101,7 @@ object PlayerRepository{
         SET
             health_status = ${Injured.entryName}
         WHERE
-            id = ${ playerId.value }
+            id = ${playerId.value}
       """
       .update
       .run
@@ -114,7 +114,7 @@ object PlayerRepository{
         SET
             health_status = ${Healthy.entryName}
         WHERE
-            id = ${ playerId.value }
+            id = ${playerId.value}
       """
       .update
       .run
@@ -125,9 +125,9 @@ object PlayerRepository{
         UPDATE
             players
         SET
-            price = ${ price.value }
+            price = ${price.value}
         WHERE
-            id = ${ playerId.value }
+            id = ${playerId.value}
       """
       .update
       .run
@@ -140,7 +140,7 @@ object PlayerRepository{
         SET
             club = $club
         WHERE
-            id = ${ playerId.value }
+            id = ${playerId.value}
       """
       .update
       .run
@@ -194,8 +194,8 @@ object PlayerRepository{
         FROM
             statistics
         WHERE
-            player_id = ${ playerId.value }
-            AND game_week = ${ gameWeek.value }
+            player_id = ${playerId.value}
+            AND game_week = ${gameWeek.value}
       """
       .query[Statistic]
       .option
@@ -215,7 +215,7 @@ object PlayerRepository{
         FROM
             statistics
         WHERE
-            player_id = ${ playerId.value }
+            player_id = ${playerId.value}
       """
       .query[Statistic]
       .option
@@ -235,12 +235,12 @@ object PlayerRepository{
              )
     VALUES
         (
-            ${ name.value },
-            ${ surname.value },
-            ${ club.toString },
-            ${ price.value },
-            ${ position.entryName },
-            ${ status }
+            ${name.value},
+            ${surname.value},
+            ${club.toString},
+            ${price.value},
+            ${position.entryName},
+            ${status}
         )
       """
       .update.withUniqueGeneratedKeys[Int]("id")

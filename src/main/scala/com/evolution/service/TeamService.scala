@@ -5,7 +5,7 @@ import cats.effect.{Deferred, IO}
 import com.evolution.domain.GamePlace.{Starter, Substituter}
 import com.evolution.domain.Position.{Defender, Forward, Goalkeeper, Midfielder}
 import com.evolution.domain.Role.Captain
-import com.evolution.domain.errors.{DuplicatePlayers, DuplicateTeam, InvalidAmountOfDefenders, InvalidAmountOfForwards, InvalidAmountOfGoalkeepers, InvalidAmountOfMidfielders, InvalidCaptain, InvalidChange, InvalidTeamPlayer, NonAvailableTransfer, NotEnoughPlayers, PriseMoreThanBudget, SpecificError, SuchPlayerDoesNotExist, SuchTeamDoesNotExist, SuchUserDoesNotExist}
+import com.evolution.domain.errors.{DuplicatePlayers, DuplicateTeam, InvalidAmountOfDefenders, InvalidAmountOfForwards, InvalidAmountOfGoalkeepers, InvalidAmountOfMidfielders, InvalidCaptain, InvalidChange, InvalidTeamPlayer, InvalidTransfer, NonAvailableTransfer, NotEnoughPlayers, PriseMoreThanBudget, SpecificError, SuchPlayerDoesNotExist, SuchTeamDoesNotExist, SuchUserDoesNotExist}
 import com.evolution.domain.{Budget, GameWeek, Id, Name, Player, Team}
 import com.evolution.repository._
 
@@ -109,7 +109,7 @@ final case class TeamService() {
         user  <- posUser match {
           case Some(user) =>
             if (user.budget.value - (newPlayer.price.value - subPlayer.price.value) < 0)
-              IO.raiseError(PriseMoreThanBudget)
+              IO.raiseError(InvalidTransfer)
             else IO.pure(user)
           case None       => IO.raiseError(SuchUserDoesNotExist)
         }
@@ -133,7 +133,7 @@ final case class TeamService() {
               IO.unit
           case None       => IO.unit
         }
-        _ <- UserRepository.updateBudget(user.id, user.budget, Budget(newPlayer.price.value - subPlayer.price.value))
+        _ <- UserRepository.updateBudget(user.id, user.budget, Budget("%.1f".format(newPlayer.price.value - subPlayer.price.value).replace(",", ".").toDouble))
         _ <- TeamRepository.makeTransfer(team.id, team.freeTransfers)
       } yield ()
     }
@@ -167,4 +167,7 @@ final case class TeamService() {
 
   def playersFromTeam(teamId: Id): IO[List[Player]] =
     TeamRepository.playersFromTeam(teamId)
+
+  def teamByOwner(user: Id): IO[Option[Id]] =
+    TeamRepository.findByOwner(user)
 }

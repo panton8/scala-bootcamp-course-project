@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     email varchar NOT NULL,
     password varchar NOT NULL,
     role varchar NOT NULL,
-    budget real NOT NULL
+    budget numeric NOT NULL
 );
 
 -- Teams
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS players (
     name varchar NOT NULL,
     surname varchar NOT NULL,
     club varchar NOT NULL,
-    price real NOT NULL,
+    price numeric NOT NULL,
     pos char(3) NOT NULL,
     health_status varchar NOT NULL
 );

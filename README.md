@@ -1,6 +1,4 @@
-# Course Project
-
-Anton Padvalnikau 153504
+# Scala Bootcamp Course Project
 
 ## Project Description
 
@@ -12,16 +10,22 @@ So your Matchday score is the sum total of your players score.
 You will be allowed do transfers using which you can replace a player in your squad.
 Your points are totalled for each match week. By default you will be enrolled in a league between all users.
 
+## List of application features
 
-## System’s class diagram
+#### User:
+* registrate a new user
+* log in user account
+* create a user's team
+* choose a captain(player, who are going to get points(x2))
+* replace one player from the team with another
+* view earned points by team/player for the specific tour
+* view earned points by team/player for the whole season
+* make a sub in line-up
+* view info about other users(including team line-up, points)
+* view info about players(data, stats)
 
-![img.png](img.png)
-
-## List of functions of application
-* singUp - registration of new user
-* signIn - login to user account
-* createTeam - creating a user's team
-* chooseCaptain - choose the player, who are going to get points(x2)
-* replacePlayer - replace one player from the team with another
-* getWeekPoints - view earned points for the specific tour
-* getTotalPoints - view earned points for the whole season
+#### Admin:
+* ban user
+* add player stat
+* update player health status
+* update teams points
